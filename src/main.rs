@@ -2,7 +2,8 @@
 use bevy::{
     prelude::{
         App, AssetServer, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed, ClearColor,
-        Color, Commands, Query, Res, SystemSet, TextBundle, Vec3, With,
+        Color, Commands, ParallelSystemDescriptorCoercion, Query, Res, SystemSet, TextBundle, Vec3,
+        With,
     },
     render::texture::ImageSettings,
     text::TextStyle,
@@ -15,12 +16,16 @@ use bevy_ecs_ldtk::{
 };
 use bevy_inspector_egui::{InspectorPlugin, RegisterInspectable, WorldInspectorPlugin};
 use debug::DebugSettings;
-use entity::{checkpoint::CheckpointBundle, player::PlayerBundle, signpost::SignpostBundle};
+use entity::{
+    checkpoint::CheckpointBundle, goblin::GoblinBundle, player::PlayerBundle,
+    signpost::SignpostBundle,
+};
 use heron::{Gravity, PhysicsPlugin};
 use input::Controllable;
 
 mod animation;
 mod camera;
+mod damage;
 mod debug;
 mod entity;
 mod input;
@@ -73,12 +78,21 @@ fn main() {
                 .with_system(level::update_level_selection)
                 .with_system(level::restart_level)
                 .with_system(animation::system)
-                .with_system(animation::state_update_system)
                 .with_system(camera::follow)
                 .with_system(camera::set_zoom)
                 .with_system(physics::add_ground_sensor)
-                .with_system(physics::check_grounded)
-                .with_system(physics::handle_controllables)
+                .with_system(physics::check_grounded.label(physics::PhysicsLabel::CheckGrounded))
+                .with_system(
+                    physics::handle_controllables
+                        .label(physics::PhysicsLabel::HandleControllables)
+                        .after(physics::PhysicsLabel::CheckGrounded),
+                )
+                .with_system(damage::detect)
+                .with_system(damage::kill.after(physics::PhysicsLabel::HandleControllables))
+                .with_system(damage::respawn)
+                .with_system(entity::player::animation_state_update)
+                .with_system(entity::goblin::patrol)
+                .with_system(entity::goblin::animation_state_update)
                 .with_system(entity::signpost::spawn_text)
                 .with_system(entity::signpost::check_near)
                 .with_system(entity::checkpoint::check_near),
@@ -87,6 +101,7 @@ fn main() {
         .register_ldtk_entity::<PlayerBundle>("Player")
         .register_ldtk_entity::<CheckpointBundle>("Checkpoint")
         .register_ldtk_entity::<SignpostBundle>("Signpost")
+        .register_ldtk_entity::<GoblinBundle>("Goblin")
         .run();
 }
 

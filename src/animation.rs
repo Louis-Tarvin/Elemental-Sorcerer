@@ -1,27 +1,14 @@
 use bevy::{
-    prelude::{Changed, Component, Query, Res},
+    prelude::{Component, Query, Res},
     sprite::TextureAtlasSprite,
     time::{Time, Timer},
 };
 
-#[derive(Component, Eq, PartialEq)]
-pub enum AnimationState {
-    Idle,
-    Walking,
-    JumpUp,
-    JumpDown,
-}
-impl Default for AnimationState {
-    fn default() -> Self {
-        AnimationState::Idle
-    }
-}
-
 #[derive(Component)]
 pub struct Animated {
     timer: Timer,
-    start: usize,
-    end: usize,
+    pub start: usize,
+    pub end: usize,
     play_once: bool,
 }
 impl Animated {
@@ -48,31 +35,6 @@ pub fn system(time: Res<Time>, mut query: Query<(&mut TextureAtlasSprite, &mut A
                 + animation.start;
             if animation.play_once && sprite.index + 1 == animation.end {
                 animation.start = sprite.index;
-            }
-        }
-    }
-}
-
-pub fn state_update_system(
-    mut query: Query<(&mut Animated, &AnimationState), Changed<AnimationState>>,
-) {
-    for (mut animation, state) in query.iter_mut() {
-        match state {
-            AnimationState::Idle => {
-                animation.start = 40;
-                animation.end = 44;
-            }
-            AnimationState::Walking => {
-                animation.start = 8;
-                animation.end = 14;
-            }
-            AnimationState::JumpUp => {
-                animation.start = 56;
-                animation.end = 59;
-            }
-            AnimationState::JumpDown => {
-                animation.start = 48;
-                animation.end = 51;
             }
         }
     }

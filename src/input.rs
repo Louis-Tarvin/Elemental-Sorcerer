@@ -29,17 +29,12 @@ pub struct Controllable {
 }
 
 impl Controllable {
-    pub fn new(
-        movement_speed: f32,
-        jump_velocity: f32,
-        acceleration: f32,
-        camera_follow: bool,
-    ) -> Self {
+    pub fn new() -> Self {
         Controllable {
-            max_speed: movement_speed,
-            jump_velocity,
-            acceleration,
-            camera_follow,
+            max_speed: 100.0,
+            jump_velocity: 180.0,
+            acceleration: 400.0,
+            camera_follow: true,
             up: false,
             down: false,
             left: false,

@@ -1,18 +1,14 @@
 use bevy::{
-    prelude::{Bundle, Component, Vec3},
-    sprite::SpriteSheetBundle,
+    prelude::{Bundle, Changed, Component, Query, Vec3},
+    sprite::{SpriteSheetBundle, TextureAtlasSprite},
 };
 use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, LevelSelection, Worldly};
 
-use crate::{
-    animation::{Animated, AnimationState},
-    input::Controllable,
-    physics::PhysicsObjectBundle,
-};
+use crate::{animation::Animated, input::Controllable, physics::PhysicsObjectBundle};
 
 impl From<EntityInstance> for Controllable {
     fn from(_: EntityInstance) -> Self {
-        Controllable::new(100.0, 180.0, 400.0, true)
+        Controllable::new()
     }
 }
 
@@ -20,6 +16,20 @@ impl From<EntityInstance> for Controllable {
 pub struct Player {
     pub checkpoint: Vec3,
     pub checkpoint_level: LevelSelection,
+}
+
+#[derive(Component, Eq, PartialEq)]
+pub enum AnimationState {
+    Idle,
+    Walking,
+    JumpUp,
+    JumpDown,
+    Death,
+}
+impl Default for AnimationState {
+    fn default() -> Self {
+        AnimationState::Idle
+    }
 }
 
 #[derive(Bundle, LdtkEntity)]
@@ -40,27 +50,35 @@ pub struct PlayerBundle {
     pub animation_state: AnimationState,
 }
 
-// pub fn spawn_player(
-// mut commands: Commands,
-// asset_server: Res<AssetServer>,
-// mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-// ) {
-// let texture_handle = asset_server.load("chars/herochar_spritesheet.png");
-// let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(16.0, 16.0), 8, 15);
-// let texture_atlas_handle = texture_atlases.add(texture_atlas);
-// let mut player = commands.spawn_bundle(SpriteSheetBundle {
-// texture_atlas: texture_atlas_handle,
-// transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0)),
-// ..Default::default()
-// });
-// player.insert(Player);
-// player.insert(Controllable::new(100.0, true));
-// player.insert(RigidBody::Dynamic);
-// player.insert(CollisionShape::Capsule {
-// half_segment: 5.0,
-// radius: 5.0,
-// });
-// player.insert(RotationConstraints::lock());
-// player.insert(Velocity::default());
-// player.insert(Animated::new(0.1, false));
-// }
+pub fn animation_state_update(
+    mut query: Query<
+        (&mut Animated, &AnimationState, &mut TextureAtlasSprite),
+        Changed<AnimationState>,
+    >,
+) {
+    for (mut animation, state, mut atlas) in query.iter_mut() {
+        match state {
+            AnimationState::Idle => {
+                animation.start = 40;
+                animation.end = 44;
+            }
+            AnimationState::Walking => {
+                animation.start = 8;
+                animation.end = 14;
+            }
+            AnimationState::JumpUp => {
+                animation.start = 56;
+                animation.end = 59;
+            }
+            AnimationState::JumpDown => {
+                animation.start = 48;
+                animation.end = 51;
+            }
+            AnimationState::Death => {
+                animation.start = 0;
+                animation.end = 8;
+            }
+        }
+        atlas.index = animation.start;
+    }
+}

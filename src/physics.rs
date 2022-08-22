@@ -3,7 +3,7 @@ use std::time::Duration;
 use bevy::{
     prelude::{
         Added, BuildChildren, Bundle, Children, Commands, Component, Entity, EventReader,
-        GlobalTransform, Query, Res, Transform, Vec3,
+        GlobalTransform, Query, Res, SystemLabel, Transform, Vec3,
     },
     sprite::TextureAtlasSprite,
     time::{Time, Timer},
@@ -13,7 +13,13 @@ use heron::{
     CollisionEvent, CollisionShape, PhysicMaterial, RigidBody, RotationConstraints, Velocity,
 };
 
-use crate::{animation::AnimationState, debug::DebugSettings, input::Controllable};
+use crate::{debug::DebugSettings, entity::player::AnimationState, input::Controllable};
+
+#[derive(SystemLabel)]
+pub enum PhysicsLabel {
+    HandleControllables,
+    CheckGrounded,
+}
 
 #[derive(Bundle, Default)]
 pub struct PhysicsObjectBundle {
@@ -101,12 +107,18 @@ pub fn handle_controllables(
         // }
         // }
         if velocity.linear.y > 0.1 {
-            *animation = AnimationState::JumpUp;
+            if *animation != AnimationState::JumpUp {
+                *animation = AnimationState::JumpUp;
+            }
         } else if velocity.linear.y < -0.1 {
-            *animation = AnimationState::JumpDown;
+            if *animation != AnimationState::JumpDown {
+                *animation = AnimationState::JumpDown;
+            }
         } else if velocity.linear.x.abs() > 0.05 {
-            *animation = AnimationState::Walking;
-        } else {
+            if *animation != AnimationState::Walking {
+                *animation = AnimationState::Walking;
+            }
+        } else if *animation != AnimationState::Idle {
             *animation = AnimationState::Idle;
         }
     }
