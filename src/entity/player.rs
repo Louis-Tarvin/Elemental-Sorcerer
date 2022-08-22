@@ -2,36 +2,13 @@ use bevy::{
     prelude::{Bundle, Component, Vec3},
     sprite::SpriteSheetBundle,
 };
-use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, Worldly};
-use heron::{CollisionShape, PhysicMaterial, RigidBody, RotationConstraints};
+use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, LevelSelection, Worldly};
 
-use crate::{animation::Animated, input::Controllable, physics::PhysicsObjectBundle};
-
-impl From<EntityInstance> for PhysicsObjectBundle {
-    fn from(entity_instance: EntityInstance) -> Self {
-        match entity_instance.identifier.as_ref() {
-            "Player" => PhysicsObjectBundle {
-                collider: CollisionShape::Cuboid {
-                    half_extends: Vec3 {
-                        x: 5.0,
-                        y: 7.0,
-                        z: 0.0,
-                    },
-                    border_radius: Some(1.0),
-                },
-                rb: RigidBody::Dynamic,
-                material: PhysicMaterial {
-                    friction: 0.0,
-                    density: 1000.0,
-                    restitution: 0.0,
-                },
-                rot_constraints: RotationConstraints::lock(),
-                ..Default::default()
-            },
-            _ => PhysicsObjectBundle::default(),
-        }
-    }
-}
+use crate::{
+    animation::{Animated, AnimationState},
+    input::Controllable,
+    physics::PhysicsObjectBundle,
+};
 
 impl From<EntityInstance> for Controllable {
     fn from(_: EntityInstance) -> Self {
@@ -39,19 +16,16 @@ impl From<EntityInstance> for Controllable {
     }
 }
 
-impl From<EntityInstance> for Animated {
-    fn from(_: EntityInstance) -> Self {
-        Animated::new(0.1, false)
-    }
-}
-
 #[derive(Component, Default)]
-pub struct Player;
+pub struct Player {
+    pub checkpoint: Vec3,
+    pub checkpoint_level: LevelSelection,
+}
 
 #[derive(Bundle, LdtkEntity)]
 pub struct PlayerBundle {
     #[bundle]
-    #[sprite_sheet_bundle("chars/herochar_spritesheet.png", 16.0, 16.0, 8, 15, 0.0, 0.0, 0)]
+    #[sprite_sheet_bundle("sprites/herochar_spritesheet.png", 16.0, 16.0, 8, 15, 0.0, 0.0, 0)]
     pub sprite_sheet_bundle: SpriteSheetBundle,
     #[worldly]
     pub worldly: Worldly,
@@ -63,6 +37,7 @@ pub struct PlayerBundle {
     pub controllable: Controllable,
     #[from_entity_instance]
     pub animated: Animated,
+    pub animation_state: AnimationState,
 }
 
 // pub fn spawn_player(

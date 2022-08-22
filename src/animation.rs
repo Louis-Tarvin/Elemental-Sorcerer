@@ -4,28 +4,32 @@ use bevy::{
     time::{Time, Timer},
 };
 
-pub enum AnimaionState {
+#[derive(Component, Eq, PartialEq)]
+pub enum AnimationState {
     Idle,
     Walking,
     JumpUp,
     JumpDown,
 }
+impl Default for AnimationState {
+    fn default() -> Self {
+        AnimationState::Idle
+    }
+}
 
 #[derive(Component)]
 pub struct Animated {
-    pub state: AnimaionState,
     timer: Timer,
     start: usize,
     end: usize,
     play_once: bool,
 }
 impl Animated {
-    pub fn new(seconds_per_frame: f32, play_once: bool) -> Self {
+    pub fn new(seconds_per_frame: f32, start: usize, end: usize, play_once: bool) -> Self {
         Self {
-            state: AnimaionState::Idle,
             timer: Timer::from_seconds(seconds_per_frame, true),
-            start: 20,
-            end: 24,
+            start,
+            end,
             play_once,
         }
     }
@@ -49,22 +53,24 @@ pub fn system(time: Res<Time>, mut query: Query<(&mut TextureAtlasSprite, &mut A
     }
 }
 
-pub fn state_update_system(mut query: Query<&mut Animated, Changed<Animated>>) {
-    for mut animation in query.iter_mut() {
-        match animation.state {
-            AnimaionState::Idle => {
+pub fn state_update_system(
+    mut query: Query<(&mut Animated, &AnimationState), Changed<AnimationState>>,
+) {
+    for (mut animation, state) in query.iter_mut() {
+        match state {
+            AnimationState::Idle => {
                 animation.start = 40;
                 animation.end = 44;
             }
-            AnimaionState::Walking => {
+            AnimationState::Walking => {
                 animation.start = 8;
                 animation.end = 14;
             }
-            AnimaionState::JumpUp => {
+            AnimationState::JumpUp => {
                 animation.start = 56;
                 animation.end = 59;
             }
-            AnimaionState::JumpDown => {
+            AnimationState::JumpDown => {
                 animation.start = 48;
                 animation.end = 51;
             }

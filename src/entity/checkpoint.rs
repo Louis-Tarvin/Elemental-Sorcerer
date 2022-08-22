@@ -1,0 +1,77 @@
+use bevy::{
+    prelude::{
+        Bundle, Children, Component, Entity, EventReader, GlobalTransform, Query, Res, ResMut,
+        Transform, Visibility, With,
+    },
+    sprite::SpriteSheetBundle,
+    text::Text,
+};
+use bevy_ecs_ldtk::{LdtkEntity, LevelSelection};
+use heron::CollisionEvent;
+
+use crate::{animation::Animated, physics::PhysicsObjectBundle};
+
+use super::{player::Player, ProximityText};
+
+#[derive(Component, Default)]
+pub struct Checkpoint;
+
+#[derive(Bundle, LdtkEntity)]
+pub struct CheckpointBundle {
+    checkpoint: Checkpoint,
+    #[bundle]
+    #[sprite_sheet_bundle("sprites/checkpoint.png", 12.0, 20.0, 9, 1, 0.0, 0.0, 0)]
+    sprite_sheet_bundle: SpriteSheetBundle,
+    #[from_entity_instance]
+    animated: Animated,
+    #[from_entity_instance]
+    text: ProximityText,
+    #[bundle]
+    #[from_entity_instance]
+    pub physics_bundle: PhysicsObjectBundle,
+}
+
+pub fn check_near(
+    mut checkpoints: Query<
+        (Entity, &GlobalTransform, &Children),
+        (With<ProximityText>, With<Checkpoint>),
+    >,
+    mut player: Query<(Entity, &mut Player)>,
+    mut text: Query<&mut Visibility, With<Text>>,
+    mut collisions: EventReader<CollisionEvent>,
+    level_selection: Res<LevelSelection>,
+) {
+    for (player_entity, mut player) in player.iter_mut() {
+        for collision in collisions.iter() {
+            for (entity, transform, children) in checkpoints.iter_mut() {
+                match collision {
+                    CollisionEvent::Started(a, b) => {
+                        if b.rigid_body_entity() == entity && a.rigid_body_entity() == player_entity
+                        {
+                            // show text
+                            for child in children.iter() {
+                                if let Ok(mut visibility) = text.get_mut(*child) {
+                                    visibility.is_visible = true;
+                                }
+                            }
+                            // set checkpoint
+                            player.checkpoint = transform.translation();
+                            player.checkpoint_level = level_selection.clone();
+                        }
+                    }
+                    CollisionEvent::Stopped(a, b) => {
+                        if b.rigid_body_entity() == entity && a.rigid_body_entity() == player_entity
+                        {
+                            // hide text
+                            for child in children.iter() {
+                                if let Ok(mut visibility) = text.get_mut(*child) {
+                                    visibility.is_visible = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

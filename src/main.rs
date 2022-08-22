@@ -9,10 +9,13 @@ use bevy::{
     ui::{AlignItems, Interaction, JustifyContent, Size, Style, UiColor, UiRect, Val},
     DefaultPlugins,
 };
-use bevy_ecs_ldtk::{prelude::RegisterLdtkObjects, LdtkPlugin, LdtkWorldBundle, LevelSelection};
-use bevy_inspector_egui::{RegisterInspectable, WorldInspectorPlugin};
+use bevy_ecs_ldtk::{
+    prelude::RegisterLdtkObjects, LdtkPlugin, LdtkSettings, LdtkWorldBundle, LevelSelection,
+    LevelSpawnBehavior,
+};
+use bevy_inspector_egui::{InspectorPlugin, RegisterInspectable, WorldInspectorPlugin};
 use debug::DebugSettings;
-use entity::player::PlayerBundle;
+use entity::{checkpoint::CheckpointBundle, player::PlayerBundle, signpost::SignpostBundle};
 use heron::{Gravity, PhysicsPlugin};
 use input::Controllable;
 
@@ -21,6 +24,7 @@ mod camera;
 mod debug;
 mod entity;
 mod input;
+mod level;
 mod physics;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -31,6 +35,10 @@ enum State {
 }
 
 fn main() {
+    // When building for WASM, print panics to the browser console
+    #[cfg(target_arch = "wasm32")]
+    console_error_panic_hook::set_once();
+
     App::new()
         .insert_resource(ImageSettings::default_nearest())
         .add_state(State::InGame)
@@ -38,11 +46,17 @@ fn main() {
         .add_plugin(LdtkPlugin)
         .add_plugin(PhysicsPlugin::default())
         .add_plugin(WorldInspectorPlugin::new())
-        // .add_plugin(InspectorPlugin::<DebugSettings>::new())
+        .add_plugin(InspectorPlugin::<DebugSettings>::new())
         .register_inspectable::<Controllable>()
         .insert_resource(ClearColor(Color::rgb(0.133, 0.122, 0.192)))
         .insert_resource(DebugSettings::default())
         .insert_resource(LevelSelection::Index(0))
+        .insert_resource(LdtkSettings {
+            level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
+                load_level_neighbors: true,
+            },
+            ..Default::default()
+        })
         .insert_resource(Gravity::from(Vec3::new(0.0, -500.0, 0.0)))
         .add_system_set(SystemSet::on_enter(State::MainMenu).with_system(main_menu_setup))
         .add_system_set(SystemSet::on_update(State::MainMenu).with_system(button_system))
@@ -55,16 +69,24 @@ fn main() {
             SystemSet::on_update(State::InGame)
                 .with_system(input::system)
                 .label(input::InputLabel::ControllableUpdate)
-                .with_system(physics::spawn_wall_collision)
+                .with_system(level::spawn_wall_collision)
+                .with_system(level::update_level_selection)
+                .with_system(level::restart_level)
                 .with_system(animation::system)
                 .with_system(animation::state_update_system)
                 .with_system(camera::follow)
+                .with_system(camera::set_zoom)
                 .with_system(physics::add_ground_sensor)
                 .with_system(physics::check_grounded)
-                .with_system(physics::handle_controllables),
+                .with_system(physics::handle_controllables)
+                .with_system(entity::signpost::spawn_text)
+                .with_system(entity::signpost::check_near)
+                .with_system(entity::checkpoint::check_near),
         )
-        .register_ldtk_int_cell::<physics::WallBundle>(1)
+        .register_ldtk_int_cell::<level::WallBundle>(1)
         .register_ldtk_entity::<PlayerBundle>("Player")
+        .register_ldtk_entity::<CheckpointBundle>("Checkpoint")
+        .register_ldtk_entity::<SignpostBundle>("Signpost")
         .run();
 }
 

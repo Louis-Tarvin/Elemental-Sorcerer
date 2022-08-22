@@ -54,7 +54,7 @@ impl Controllable {
 pub fn system(
     keyboard_input: Res<Input<KeyCode>>,
     mouse_input: Res<Input<MouseButton>>,
-    mut debug_settings: ResMut<DebugSettings>,
+    debug_settings: Res<DebugSettings>,
     mut query: Query<&mut Controllable>,
     mut mouse_wheel_events: EventReader<MouseWheel>,
     mut camera_query: Query<(&mut OrthographicProjection, &Camera)>,
@@ -101,26 +101,14 @@ pub fn system(
         } else {
             c.attacking = false;
         }
-
-        if keyboard_input.just_pressed(KeyCode::F3) {
-            *debug_settings = DebugSettings {
-                tile_collisions: true,
-                player_collison_box: true,
-                hitbox: true,
-                triggers: true,
-                noclip: true,
-            };
-        }
-
-        if keyboard_input.just_pressed(KeyCode::F4) {
-            *debug_settings = DebugSettings::default();
-        }
     }
 
     for event in mouse_wheel_events.iter() {
-        let delta_scale = event.y / 10.0;
-        for (mut projection, _camera) in camera_query.iter_mut() {
-            projection.scale *= 1.0 + delta_scale / 2.0;
+        if debug_settings.unlock_camera {
+            let delta_scale = event.y / 10.0;
+            for (mut projection, _camera) in camera_query.iter_mut() {
+                projection.scale *= 1.0 + delta_scale / 2.0;
+            }
         }
     }
 }
