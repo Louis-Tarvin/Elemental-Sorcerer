@@ -52,18 +52,27 @@ pub fn spawn_text(
 }
 
 pub fn check_near(
-    mut signposts: Query<(Entity, &Children), (With<ProximityText>, With<Signpost>)>,
+    signposts: Query<&Children, (With<ProximityText>, With<Signpost>)>,
     player: Query<Entity, With<Player>>,
     mut text: Query<&mut Visibility, With<Text>>,
     mut collisions: EventReader<CollisionEvent>,
 ) {
     for player_entity in player.iter() {
         for collision in collisions.iter() {
-            for (entity, children) in signposts.iter_mut() {
-                match collision {
-                    CollisionEvent::Started(a, b) => {
-                        if b.rigid_body_entity() == entity && a.rigid_body_entity() == player_entity
-                        {
+            // for (entity, children) in signposts.iter_mut() {
+            match collision {
+                CollisionEvent::Started(a, b) => {
+                    if a.rigid_body_entity() == player_entity {
+                        if let Ok(children) = signposts.get(b.rigid_body_entity()) {
+                            // show text
+                            for child in children.iter() {
+                                if let Ok(mut visibility) = text.get_mut(*child) {
+                                    visibility.is_visible = true;
+                                }
+                            }
+                        }
+                    } else if b.rigid_body_entity() == player_entity {
+                        if let Ok(children) = signposts.get(a.rigid_body_entity()) {
                             // show text
                             for child in children.iter() {
                                 if let Ok(mut visibility) = text.get_mut(*child) {
@@ -72,9 +81,19 @@ pub fn check_near(
                             }
                         }
                     }
-                    CollisionEvent::Stopped(a, b) => {
-                        if b.rigid_body_entity() == entity && a.rigid_body_entity() == player_entity
-                        {
+                }
+                CollisionEvent::Stopped(a, b) => {
+                    if a.rigid_body_entity() == player_entity {
+                        if let Ok(children) = signposts.get(b.rigid_body_entity()) {
+                            // hide text
+                            for child in children.iter() {
+                                if let Ok(mut visibility) = text.get_mut(*child) {
+                                    visibility.is_visible = false;
+                                }
+                            }
+                        }
+                    } else if b.rigid_body_entity() == player_entity {
+                        if let Ok(children) = signposts.get(a.rigid_body_entity()) {
                             // hide text
                             for child in children.iter() {
                                 if let Ok(mut visibility) = text.get_mut(*child) {

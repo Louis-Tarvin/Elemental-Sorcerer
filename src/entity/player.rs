@@ -1,10 +1,13 @@
 use bevy::{
-    prelude::{Bundle, Changed, Component, Query, Vec3},
+    prelude::{Added, Bundle, Changed, Component, GlobalTransform, Query, Res, Vec3},
     sprite::{SpriteSheetBundle, TextureAtlasSprite},
 };
 use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, LevelSelection, Worldly};
+use bevy_inspector_egui::Inspectable;
 
 use crate::{animation::Animated, input::Controllable, physics::PhysicsObjectBundle};
+
+use super::ability::Ability;
 
 impl From<EntityInstance> for Controllable {
     fn from(_: EntityInstance) -> Self {
@@ -12,10 +15,34 @@ impl From<EntityInstance> for Controllable {
     }
 }
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Inspectable)]
 pub struct Player {
     pub checkpoint: Vec3,
+    #[inspectable(ignore)]
     pub checkpoint_level: LevelSelection,
+    pub unlocked_fireball: bool,
+    pub unlocked_jump: bool,
+    pub unlocked_airblast: bool,
+    pub unlocked_speed: bool,
+    pub equipt_abilities: (Option<Ability>, Option<Ability>),
+    pub near_checkpoint: bool,
+}
+impl Player {
+    pub fn has_equipt(&self, ability: Ability) -> bool {
+        let mut result = false;
+        if let Some(slot0) = &self.equipt_abilities.0 {
+            if slot0 == &ability {
+                result = true;
+            }
+        }
+        if let Some(slot1) = &self.equipt_abilities.1 {
+            if slot1 == &ability {
+                result = true;
+            }
+        }
+
+        result
+    }
 }
 
 #[derive(Component, Eq, PartialEq)]
@@ -80,5 +107,15 @@ pub fn animation_state_update(
             }
         }
         atlas.index = animation.start;
+    }
+}
+
+pub fn set_spawn(
+    level_selection: Res<LevelSelection>,
+    mut query: Query<(&mut Player, &GlobalTransform), Added<Player>>,
+) {
+    for (mut player, transform) in query.iter_mut() {
+        player.checkpoint = transform.translation();
+        player.checkpoint_level = level_selection.clone();
     }
 }

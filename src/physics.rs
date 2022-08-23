@@ -13,7 +13,14 @@ use heron::{
     CollisionEvent, CollisionShape, PhysicMaterial, RigidBody, RotationConstraints, Velocity,
 };
 
-use crate::{debug::DebugSettings, entity::player::AnimationState, input::Controllable};
+use crate::{
+    debug::DebugSettings,
+    entity::{
+        ability::Ability,
+        player::{AnimationState, Player},
+    },
+    input::Controllable,
+};
 
 #[derive(SystemLabel)]
 pub enum PhysicsLabel {
@@ -35,6 +42,7 @@ pub fn handle_controllables(
     mut query: Query<(
         &mut Velocity,
         &Controllable,
+        &Player,
         &mut AnimationState,
         &mut TextureAtlasSprite,
         &Children,
@@ -42,7 +50,8 @@ pub fn handle_controllables(
     mut ground_detectors: Query<&mut GroundDetector>,
     debug_settings: Res<DebugSettings>,
 ) {
-    for (mut velocity, controllable, mut animation, mut texture_atlas, children) in query.iter_mut()
+    for (mut velocity, controllable, player, mut animation, mut texture_atlas, children) in
+        query.iter_mut()
     {
         let Controllable {
             left,
@@ -58,7 +67,11 @@ pub fn handle_controllables(
         for &child in children.iter() {
             if let Ok(mut detector) = ground_detectors.get_mut(child) {
                 if jumping && (!detector.coyote_timer.finished() || debug_settings.flying) {
-                    velocity.linear.y = jump_velocity;
+                    if player.has_equipt(Ability::Jump) {
+                        velocity.linear.y = jump_velocity * 1.5;
+                    } else {
+                        velocity.linear.y = jump_velocity;
+                    }
                     // run out the timer
                     detector.coyote_timer.tick(Duration::from_secs(10.0 as u64));
                 }
@@ -67,6 +80,12 @@ pub fn handle_controllables(
                     acceleration
                 } else {
                     acceleration / 2.0
+                };
+
+                let max_speed = if player.has_equipt(Ability::Speed) {
+                    max_speed * 1.5
+                } else {
+                    max_speed
                 };
 
                 if right && !left {

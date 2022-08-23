@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        Bundle, Children, Component, Entity, EventReader, GlobalTransform, Query, Res, ResMut,
-        Transform, Visibility, With,
+        Bundle, Children, Component, Entity, EventReader, GlobalTransform, Query, Res, Visibility,
+        With,
     },
     sprite::SpriteSheetBundle,
     text::Text,
@@ -32,10 +32,7 @@ pub struct CheckpointBundle {
 }
 
 pub fn check_near(
-    mut checkpoints: Query<
-        (Entity, &GlobalTransform, &Children),
-        (With<ProximityText>, With<Checkpoint>),
-    >,
+    checkpoints: Query<(&GlobalTransform, &Children), (With<ProximityText>, With<Checkpoint>)>,
     mut player: Query<(Entity, &mut Player)>,
     mut text: Query<&mut Visibility, With<Text>>,
     mut collisions: EventReader<CollisionEvent>,
@@ -43,11 +40,11 @@ pub fn check_near(
 ) {
     for (player_entity, mut player) in player.iter_mut() {
         for collision in collisions.iter() {
-            for (entity, transform, children) in checkpoints.iter_mut() {
-                match collision {
-                    CollisionEvent::Started(a, b) => {
-                        if b.rigid_body_entity() == entity && a.rigid_body_entity() == player_entity
-                        {
+            // for (entity, children) in signposts.iter_mut() {
+            match collision {
+                CollisionEvent::Started(a, b) => {
+                    if a.rigid_body_entity() == player_entity {
+                        if let Ok((transform, children)) = checkpoints.get(b.rigid_body_entity()) {
                             // show text
                             for child in children.iter() {
                                 if let Ok(mut visibility) = text.get_mut(*child) {
@@ -57,17 +54,43 @@ pub fn check_near(
                             // set checkpoint
                             player.checkpoint = transform.translation();
                             player.checkpoint_level = level_selection.clone();
+                            player.near_checkpoint = true;
+                        }
+                    } else if b.rigid_body_entity() == player_entity {
+                        if let Ok((transform, children)) = checkpoints.get(a.rigid_body_entity()) {
+                            // show text
+                            for child in children.iter() {
+                                if let Ok(mut visibility) = text.get_mut(*child) {
+                                    visibility.is_visible = true;
+                                }
+                            }
+                            // set checkpoint
+                            player.checkpoint = transform.translation();
+                            player.checkpoint_level = level_selection.clone();
+                            player.near_checkpoint = true;
                         }
                     }
-                    CollisionEvent::Stopped(a, b) => {
-                        if b.rigid_body_entity() == entity && a.rigid_body_entity() == player_entity
-                        {
+                }
+                CollisionEvent::Stopped(a, b) => {
+                    if a.rigid_body_entity() == player_entity {
+                        if let Ok((_, children)) = checkpoints.get(b.rigid_body_entity()) {
                             // hide text
                             for child in children.iter() {
                                 if let Ok(mut visibility) = text.get_mut(*child) {
                                     visibility.is_visible = false;
                                 }
                             }
+                            player.near_checkpoint = false;
+                        }
+                    } else if b.rigid_body_entity() == player_entity {
+                        if let Ok((_, children)) = checkpoints.get(a.rigid_body_entity()) {
+                            // hide text
+                            for child in children.iter() {
+                                if let Ok(mut visibility) = text.get_mut(*child) {
+                                    visibility.is_visible = false;
+                                }
+                            }
+                            player.near_checkpoint = false;
                         }
                     }
                 }

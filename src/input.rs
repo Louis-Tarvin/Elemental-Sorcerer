@@ -3,6 +3,7 @@ use bevy::{
     input::{keyboard::KeyCode, mouse::MouseWheel, Input},
     prelude::{EventReader, MouseButton},
     render::camera::{Camera, OrthographicProjection},
+    time::Timer,
 };
 use bevy_inspector_egui::Inspectable;
 
@@ -25,7 +26,9 @@ pub struct Controllable {
     pub right: bool,
     pub jumping: bool,
     pub interacting: bool,
-    pub attacking: bool,
+    pub ability: bool,
+    #[inspectable(ignore)]
+    pub ability_timer: Timer,
 }
 
 impl Controllable {
@@ -41,7 +44,8 @@ impl Controllable {
             right: false,
             jumping: false,
             interacting: false,
-            attacking: false,
+            ability: false,
+            ability_timer: Timer::from_seconds(1.0, false),
         }
     }
 }
@@ -92,9 +96,9 @@ pub fn system(
         }
 
         if mouse_input.pressed(MouseButton::Left) {
-            c.attacking = true;
+            c.ability = true;
         } else {
-            c.attacking = false;
+            c.ability = false;
         }
     }
 

@@ -9,7 +9,7 @@ use bevy_ecs_ldtk::{
 };
 use heron::{CollisionShape, PhysicMaterial, RigidBody};
 
-use crate::entity::player::Player;
+use crate::{damage::Hurtbox, entity::player::Player};
 
 /// This function was copied from the example in bevy_ecs_ldtk. All credit goes to the author
 pub fn update_level_selection(
@@ -248,5 +248,134 @@ pub fn restart_level(
         for level_entity in level_query.iter() {
             commands.entity(level_entity).insert(Respawn);
         }
+    }
+}
+
+#[derive(Component, Default)]
+pub struct Spike;
+
+#[derive(Bundle, LdtkIntCell)]
+pub struct SpikeBundle {
+    pub hurtbox: Hurtbox,
+    pub spike: Spike,
+}
+
+pub fn spawn_spike_collision(
+    mut commands: Commands,
+    spike_query: Query<(&GridCoords, &Parent), Added<Spike>>,
+    parent_query: Query<&Parent, Without<Spike>>,
+    level_query: Query<(Entity, &Handle<LdtkLevel>)>,
+    levels: Res<Assets<LdtkLevel>>,
+) {
+    /// Represents a wide wall that is 1 tile tall
+    /// Used to spawn spike collisions
+    #[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Hash)]
+    struct Plate {
+        left: i32,
+        right: i32,
+    }
+
+    // Consider where the walls are
+    // storing them as GridCoords in a HashSet for quick, easy lookup
+    //
+    // The key of this map will be the entity of the level the wall belongs to.
+    // This has two consequences in the resulting collision entities:
+    // 1. it forces the walls to be split along level boundaries
+    // 2. it lets us easily add the collision entities as children of the appropriate level entity
+    let mut level_to_wall_locations: HashMap<Entity, HashSet<GridCoords>> = HashMap::new();
+
+    spike_query.for_each(|(&grid_coords, parent)| {
+        // An intgrid tile's direct parent will be a layer entity, not the level entity
+        // To get the level entity, you need the tile's grandparent.
+        // This is where parent_query comes in.
+        if let Ok(grandparent) = parent_query.get(parent.get()) {
+            level_to_wall_locations
+                .entry(grandparent.get())
+                .or_insert_with(HashSet::new)
+                .insert(grid_coords);
+        }
+    });
+
+    if !spike_query.is_empty() {
+        level_query.for_each(|(level_entity, level_handle)| {
+            if let Some(level_walls) = level_to_wall_locations.get(&level_entity) {
+                let level = levels
+                    .get(level_handle)
+                    .expect("Level should be loaded by this point");
+
+                let LayerInstance {
+                    c_wid: width,
+                    c_hei: height,
+                    grid_size,
+                    ..
+                } = level
+                    .level
+                    .layer_instances
+                    .clone()
+                    .expect("Level asset should have layers")[3];
+
+                // combine wall tiles into flat "plates" in each individual row
+                let mut plate_stack: Vec<Vec<Plate>> = Vec::new();
+
+                for y in 0..height {
+                    let mut row_plates: Vec<Plate> = Vec::new();
+                    let mut plate_start = None;
+
+                    // + 1 to the width so the algorithm "terminates" plates that touch the right
+                    // edge
+                    for x in 0..width + 1 {
+                        match (plate_start, level_walls.contains(&GridCoords { x, y })) {
+                            (Some(s), false) => {
+                                row_plates.push(Plate {
+                                    left: s,
+                                    right: x - 1,
+                                });
+                                plate_start = None;
+                            }
+                            (None, true) => plate_start = Some(x),
+                            _ => (),
+                        }
+                    }
+
+                    plate_stack.push(row_plates);
+                }
+
+                commands.entity(level_entity).with_children(|level| {
+                    // Spawn colliders for every rectangle..
+                    // Making the collider a child of the level serves two purposes:
+                    // 1. Adjusts the transforms to be relative to the level for free
+                    // 2. the colliders will be despawned automatically when levels unload
+                    for (y, row) in plate_stack.iter().enumerate() {
+                        for plate in row {
+                            level
+                                .spawn()
+                                .insert(CollisionShape::Cuboid {
+                                    half_extends: Vec3::new(
+                                        (plate.right as f32 - plate.left as f32 + 1.)
+                                            * grid_size as f32
+                                            / 2.,
+                                        grid_size as f32 / 2. - 5.0,
+                                        0.,
+                                    ),
+                                    border_radius: None,
+                                })
+                                .insert(RigidBody::Static)
+                                .insert(PhysicMaterial {
+                                    friction: 0.0,
+                                    restitution: 0.0,
+                                    ..Default::default()
+                                })
+                                .insert(Transform::from_xyz(
+                                    (plate.left + plate.right + 1) as f32 * grid_size as f32 / 2.,
+                                    (y + y + 1) as f32 * grid_size as f32 / 2.,
+                                    0.,
+                                ))
+                                .insert(GlobalTransform::default())
+                                .insert(Hurtbox);
+                        }
+                    }
+                });
+            }
+        });
     }
 }

@@ -1,10 +1,11 @@
 use bevy::prelude::{Component, Vec3};
 use bevy_ecs_ldtk::{prelude::FieldValue, EntityInstance};
 use bevy_inspector_egui::Inspectable;
-use heron::{CollisionShape, PhysicMaterial, RigidBody, RotationConstraints, Velocity};
+use heron::{CollisionShape, PhysicMaterial, RigidBody, RotationConstraints};
 
 use crate::{animation::Animated, physics::PhysicsObjectBundle};
 
+pub mod ability;
 pub mod checkpoint;
 pub mod goblin;
 pub mod player;
@@ -16,6 +17,7 @@ impl From<EntityInstance> for Animated {
             "Player" => Animated::new(0.1, 0, 1, false),
             "Checkpoint" => Animated::new(0.1, 0, 9, false),
             "Goblin" => Animated::new(0.1, 18, 22, false),
+            "Ability" => Animated::new(0.1, 0, 6, false),
             _ => Animated::new(0.1, 0, 1, false),
         }
     }
@@ -42,7 +44,7 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                 rot_constraints: RotationConstraints::lock(),
                 ..Default::default()
             },
-            "Signpost" | "Checkpoint" => PhysicsObjectBundle {
+            "Signpost" | "Checkpoint" | "Ability" => PhysicsObjectBundle {
                 collider: CollisionShape::Cuboid {
                     half_extends: Vec3::splat(10.0),
                     border_radius: None,
