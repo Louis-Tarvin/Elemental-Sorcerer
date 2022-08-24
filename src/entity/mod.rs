@@ -9,6 +9,7 @@ use crate::{
 };
 
 pub mod ability;
+pub mod block;
 pub mod checkpoint;
 pub mod goblin;
 pub mod player;
@@ -41,13 +42,17 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                 rb: RigidBody::Dynamic,
                 material: PhysicMaterial {
                     friction: 0.0,
-                    density: 1000.0,
+                    density: 100.0,
                     restitution: 0.0,
                 },
                 rot_constraints: RotationConstraints::lock(),
                 layer: CollisionLayers::none()
                     .with_group(PhysicsLayers::Player)
-                    .with_masks(&[PhysicsLayers::Terrain, PhysicsLayers::Enemy]),
+                    .with_masks(&[
+                        PhysicsLayers::Terrain,
+                        PhysicsLayers::Enemy,
+                        PhysicsLayers::Movable,
+                    ]),
                 ..Default::default()
             },
             "Signpost" | "Checkpoint" | "Ability" => PhysicsObjectBundle {
@@ -60,12 +65,27 @@ impl From<EntityInstance> for PhysicsObjectBundle {
             },
             "Goblin" => PhysicsObjectBundle {
                 collider: CollisionShape::Cuboid {
-                    half_extends: Vec3::splat(8.0),
+                    half_extends: Vec3::splat(7.0),
                     border_radius: None,
                 },
                 rb: RigidBody::KinematicVelocityBased,
                 layer: CollisionLayers::all_masks::<PhysicsLayers>()
                     .with_group(PhysicsLayers::Enemy),
+                ..Default::default()
+            },
+            "Block" => PhysicsObjectBundle {
+                collider: CollisionShape::Cuboid {
+                    half_extends: Vec3::splat(8.0),
+                    border_radius: None,
+                },
+                material: PhysicMaterial {
+                    friction: 0.5,
+                    density: 1000.0,
+                    restitution: 0.0,
+                },
+                rb: RigidBody::Dynamic,
+                layer: CollisionLayers::all_masks::<PhysicsLayers>()
+                    .with_group(PhysicsLayers::Movable),
                 ..Default::default()
             },
             _ => PhysicsObjectBundle::default(),
@@ -94,7 +114,7 @@ impl From<EntityInstance> for ProximityText {
                     "Error"
                 }
             }
-            "Checkpoint" => "Checkpoint saved",
+            "Checkpoint" => "Checkpoint saved\nPress <E> to combine",
             _ => "Entity should not have ProximityText component",
         };
         ProximityText(text.into())

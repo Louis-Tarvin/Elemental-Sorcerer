@@ -15,6 +15,7 @@ use bevy_inspector_egui::{InspectorPlugin, RegisterInspectable, WorldInspectorPl
 use debug::DebugSettings;
 use entity::{
     ability::AbilityBundle,
+    block::BlockBundle,
     checkpoint::CheckpointBundle,
     goblin::GoblinBundle,
     player::{Player, PlayerBundle},
@@ -96,7 +97,7 @@ fn main() {
                 .with_system(damage::kill.after(physics::PhysicsLabel::HandleControllables))
                 .with_system(damage::respawn)
                 .with_system(entity::player::animation_state_update)
-                // .with_system(entity::player::set_spawn)
+                .with_system(entity::player::set_spawn)
                 .with_system(entity::goblin::patrol)
                 .with_system(entity::goblin::animation_state_update)
                 .with_system(entity::goblin::face_direction)
@@ -113,7 +114,7 @@ fn main() {
                 .with_system(state::ability_menu::trigger_leave)
                 .with_system(state::ability_menu::equiptment_button_system)
                 .with_system(state::ability_menu::element_button_system)
-                .with_system(state::ability_menu::update_equipt),
+                .with_system(state::ability_menu::update_text),
         )
         .register_ldtk_int_cell::<level::WallBundle>(1)
         .register_ldtk_int_cell::<level::SpikeBundle>(2)
@@ -122,6 +123,7 @@ fn main() {
         .register_ldtk_entity::<SignpostBundle>("Signpost")
         .register_ldtk_entity::<AbilityBundle>("Ability")
         .register_ldtk_entity::<GoblinBundle>("Goblin")
+        .register_ldtk_entity::<BlockBundle>("Block")
         .run();
 }
 

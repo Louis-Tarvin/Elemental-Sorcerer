@@ -3,7 +3,7 @@ use std::fmt::Display;
 use bevy::{
     prelude::{
         AssetServer, Assets, Commands, Component, DespawnRecursiveExt, Entity, EventReader,
-        GlobalTransform, Query, Res, ResMut, Transform, Vec2, Vec3,
+        GlobalTransform, Query, Res, ResMut, Transform, Vec2, Vec3, With, Without,
     },
     sprite::{SpriteSheetBundle, TextureAtlas, TextureAtlasSprite},
     time::{Time, Timer},
@@ -16,7 +16,7 @@ use heron::{
 use crate::{
     animation::Animated,
     destruction::DestructionTimer,
-    entity::{goblin::Enemy, player::Player},
+    entity::{block::Block, goblin::Enemy, player::Player},
     input::Controllable,
     physics::{PhysicsLayers, PhysicsObjectBundle},
 };
@@ -51,8 +51,11 @@ impl Display for Element {
     }
 }
 
-#[derive(Component, Default)]
-pub struct Projectile;
+#[derive(Component)]
+pub enum Projectile {
+    Fireball,
+    Wind,
+}
 
 pub fn use_ability(
     time: Res<Time>,
@@ -92,7 +95,7 @@ pub fn use_ability(
                         ..Default::default()
                     })
                     .insert(Animated::new(0.1, 0, 4, false))
-                    .insert(Projectile::default())
+                    .insert(Projectile::Fireball)
                     .insert(DestructionTimer(Timer::from_seconds(0.6, false)))
                     .insert_bundle(PhysicsObjectBundle {
                         collider: CollisionShape::Cuboid {
@@ -119,7 +122,7 @@ pub fn use_ability(
                     );
             } else if player.has_infused(Element::Air) {
                 controllable.ability_timer.reset();
-                let vel_x = if sprite.flip_x { -150.0 } else { 150.0 };
+                let vel_x = if sprite.flip_x { -50.0 } else { 50.0 };
                 let texture_handle = asset_server.load("sprites/wind.png");
                 let texture_atlas =
                     TextureAtlas::from_grid(texture_handle, Vec2::new(16.0, 16.0), 5, 1);
@@ -137,7 +140,7 @@ pub fn use_ability(
                         ..Default::default()
                     })
                     .insert(Animated::new(0.1, 0, 5, false))
-                    .insert(Projectile::default())
+                    .insert(Projectile::Wind)
                     .insert(DestructionTimer(Timer::from_seconds(0.6, false)))
                     .insert_bundle(PhysicsObjectBundle {
                         collider: CollisionShape::Cuboid {
@@ -169,25 +172,47 @@ pub fn use_ability(
 
 pub fn projectile_collision(
     mut commands: Commands,
-    projectiles: Query<&Projectile>,
+    projectiles: Query<(&Projectile, &Velocity), Without<Block>>,
     enemies: Query<(Entity, &Enemy)>,
+    mut blocks: Query<&mut Velocity, (With<Block>, Without<Projectile>)>,
     mut collisions: EventReader<CollisionEvent>,
 ) {
-    collisions
-        .iter()
-        .filter(|e| e.is_started())
-        .filter_map(|e| {
-            let (e1, e2) = e.rigid_body_entities();
-            if (enemies.get(e1).is_ok() && projectiles.get(e2).is_ok())
-                || (enemies.get(e2).is_ok() && projectiles.get(e1).is_ok())
-            {
-                Some((e1, e2))
-            } else {
-                None
+    for event in collisions.iter().filter(|e| e.is_started()) {
+        let (e1, e2) = event.rigid_body_entities();
+        if let Ok((projectile, projectile_velocity)) = projectiles.get(e1) {
+            // entity 1 is projectile
+            match projectile {
+                Projectile::Fireball => {
+                    if enemies.get(e2).is_ok() {
+                        // despawn
+                        commands.entity(e1).despawn_recursive();
+                        commands.entity(e2).despawn_recursive();
+                    }
+                }
+                Projectile::Wind => {
+                    if let Ok(mut velocity) = blocks.get_mut(e2) {
+                        // push
+                        velocity.linear = projectile_velocity.linear;
+                    }
+                }
             }
-        })
-        .for_each(|(e1, e2)| {
-            commands.entity(e1).despawn_recursive();
-            commands.entity(e2).despawn_recursive();
-        });
+        } else if let Ok((projectile, projectile_velocity)) = projectiles.get(e2) {
+            // entity 2 is projectile
+            match projectile {
+                Projectile::Fireball => {
+                    if enemies.get(e1).is_ok() {
+                        // despawn
+                        commands.entity(e1).despawn_recursive();
+                        commands.entity(e2).despawn_recursive();
+                    }
+                }
+                Projectile::Wind => {
+                    if let Ok(mut velocity) = blocks.get_mut(e1) {
+                        // push
+                        velocity.linear = projectile_velocity.linear;
+                    }
+                }
+            }
+        }
+    }
 }

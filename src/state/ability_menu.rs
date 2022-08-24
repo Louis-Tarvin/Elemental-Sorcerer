@@ -26,6 +26,8 @@ pub struct UiRootNode;
 pub struct Slot1Text;
 #[derive(Component)]
 pub struct Slot2Text;
+#[derive(Component)]
+pub struct CombinationText;
 
 pub fn trigger_enter(
     mut app_state: ResMut<bevy::prelude::State<State>>,
@@ -107,7 +109,7 @@ pub fn setup(
                         .with_children(|parent| {
                             // Title text
                             parent.spawn_bundle(TextBundle::from_section(
-                                "Select abilities:",
+                                "Combine equiptment with an element to create an ability",
                                 TextStyle {
                                     font: asset_server.load("fonts/roboto.ttf"),
                                     font_size: 30.0,
@@ -274,9 +276,15 @@ pub fn setup(
                                 size: Size::new(Val::Percent(100.0), Val::Auto),
                                 justify_content: JustifyContent::SpaceAround,
                                 align_items: AlignItems::Center,
+                                margin: UiRect {
+                                    left: Val::Auto,
+                                    right: Val::Auto,
+                                    top: Val::Px(10.0),
+                                    bottom: Val::Px(10.0),
+                                },
                                 ..Default::default()
                             },
-                            color: Color::rgba(0.0, 0.0, 0.0, 0.8).into(),
+                            color: Color::NONE.into(),
                             ..Default::default()
                         })
                         .with_children(|parent| {
@@ -313,6 +321,59 @@ pub fn setup(
                                     },
                                 ))
                                 .insert(Slot2Text);
+                        });
+                    // Combination text wrapper
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(100.0), Val::Auto),
+                                justify_content: JustifyContent::SpaceAround,
+                                align_items: AlignItems::Center,
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
+                            ..Default::default()
+                        })
+                        .with_children(|parent| {
+                            parent
+                                .spawn_bundle(TextBundle::from_section(
+                                    "Combined effect: ".to_string()
+                                        + player.get_combination_description(),
+                                    TextStyle {
+                                        font: asset_server.load("fonts/roboto.ttf"),
+                                        font_size: 30.0,
+                                        color: Color::WHITE,
+                                    },
+                                ))
+                                .insert(CombinationText);
+                        });
+                    // Buttons help text wrapper
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(100.0), Val::Auto),
+                                justify_content: JustifyContent::SpaceAround,
+                                align_items: AlignItems::Center,
+                                margin: UiRect {
+                                    left: Val::Auto,
+                                    right: Val::Auto,
+                                    top: Val::Px(10.0),
+                                    bottom: Val::Px(10.0),
+                                },
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
+                            ..Default::default()
+                        })
+                        .with_children(|parent| {
+                            parent.spawn_bundle(TextBundle::from_section(
+                                "Press <ESC> when finished",
+                                TextStyle {
+                                    font: asset_server.load("fonts/roboto.ttf"),
+                                    font_size: 25.0,
+                                    color: Color::WHITE,
+                                },
+                            ));
                         });
                 });
         })
@@ -369,10 +430,32 @@ pub fn element_button_system(
     }
 }
 
-pub fn update_equipt(
+pub fn update_text(
     player_query: Query<&Player, Changed<Player>>,
-    mut slot_1: Query<&mut Text, (With<Slot1Text>, Without<Slot2Text>)>,
-    mut slot_2: Query<&mut Text, (With<Slot2Text>, Without<Slot1Text>)>,
+    mut slot_1: Query<
+        &mut Text,
+        (
+            With<Slot1Text>,
+            Without<Slot2Text>,
+            Without<CombinationText>,
+        ),
+    >,
+    mut slot_2: Query<
+        &mut Text,
+        (
+            With<Slot2Text>,
+            Without<Slot1Text>,
+            Without<CombinationText>,
+        ),
+    >,
+    mut combined: Query<
+        &mut Text,
+        (
+            With<CombinationText>,
+            Without<Slot1Text>,
+            Without<Slot2Text>,
+        ),
+    >,
 ) {
     for player in player_query.iter() {
         if let Some(ability) = player.combination.0 {
@@ -388,6 +471,9 @@ pub fn update_equipt(
             for mut text in slot_2.iter_mut() {
                 text.sections[0].value = new_text.clone();
             }
+        }
+        for mut text in combined.iter_mut() {
+            text.sections[0].value = player.get_combination_description().to_string();
         }
     }
 }

@@ -35,7 +35,7 @@ impl Controllable {
     pub fn new() -> Self {
         Controllable {
             max_speed: 100.0,
-            jump_velocity: 180.0,
+            jump_velocity: 200.0,
             acceleration: 400.0,
             camera_follow: true,
             up: false,
@@ -83,7 +83,7 @@ pub fn system(
             c.down = false;
         }
 
-        if keyboard_input.pressed(KeyCode::Space) {
+        if keyboard_input.just_pressed(KeyCode::Space) {
             c.jumping = true;
         } else {
             c.jumping = false;

@@ -3251,7 +3251,36 @@
 					"autoLayerTiles": [],
 					"seed": 577286,
 					"overrideTilesetUid": 31,
-					"gridTiles": [],
+					"gridTiles": [
+						{ "px": [424,296], "src": [0,0], "f": 0, "t": 0, "d": [3827] },
+						{ "px": [440,296], "src": [32,0], "f": 0, "t": 4, "d": [3829] },
+						{ "px": [448,296], "src": [40,0], "f": 0, "t": 5, "d": [3830] },
+						{ "px": [312,312], "src": [48,0], "f": 0, "t": 6, "d": [4017] },
+						{ "px": [320,312], "src": [56,0], "f": 0, "t": 7, "d": [4018] },
+						{ "px": [544,312], "src": [0,0], "f": 0, "t": 0, "d": [4046] },
+						{ "px": [208,344], "src": [8,0], "f": 0, "t": 1, "d": [4412] },
+						{ "px": [232,344], "src": [32,0], "f": 0, "t": 4, "d": [4415] },
+						{ "px": [240,344], "src": [40,0], "f": 0, "t": 5, "d": [4416] },
+						{ "px": [160,360], "src": [48,0], "f": 0, "t": 6, "d": [4610] },
+						{ "px": [168,360], "src": [56,0], "f": 0, "t": 7, "d": [4611] },
+						{ "px": [384,368], "src": [64,0], "f": 0, "t": 8, "d": [4740] },
+						{ "px": [392,368], "src": [72,0], "f": 0, "t": 9, "d": [4741] },
+						{ "px": [472,368], "src": [64,0], "f": 0, "t": 8, "d": [4751] },
+						{ "px": [480,368], "src": [72,0], "f": 0, "t": 9, "d": [4752] },
+						{ "px": [640,376], "src": [8,0], "f": 0, "t": 1, "d": [4874] },
+						{ "px": [704,376], "src": [48,0], "f": 0, "t": 6, "d": [4882] },
+						{ "px": [712,376], "src": [56,0], "f": 0, "t": 7, "d": [4883] },
+						{ "px": [624,392], "src": [32,0], "f": 0, "t": 4, "d": [5076] },
+						{ "px": [632,392], "src": [40,0], "f": 0, "t": 5, "d": [5077] },
+						{ "px": [560,408], "src": [48,0], "f": 0, "t": 6, "d": [5272] },
+						{ "px": [568,408], "src": [56,0], "f": 0, "t": 7, "d": [5273] },
+						{ "px": [576,448], "src": [64,0], "f": 0, "t": 8, "d": [5784] },
+						{ "px": [584,448], "src": [72,0], "f": 0, "t": 9, "d": [5785] },
+						{ "px": [104,464], "src": [64,0], "f": 0, "t": 8, "d": [5929] },
+						{ "px": [112,464], "src": [72,0], "f": 0, "t": 9, "d": [5930] },
+						{ "px": [240,544], "src": [64,0], "f": 0, "t": 8, "d": [6966] },
+						{ "px": [248,544], "src": [72,0], "f": 0, "t": 9, "d": [6967] }
+					],
 					"entityInstances": []
 				},
 				{
@@ -4332,7 +4361,10 @@
 							"px": [352,208],
 							"fieldInstances": [
 								{ "__identifier": "Point", "__value": null, "__type": "Point", "__tile": null, "defUid": 81, "realEditorValues": [] },
-								{ "__identifier": "FaceLeft", "__value": false, "__type": "Bool", "__tile": null, "defUid": 100, "realEditorValues": [] }
+								{ "__identifier": "FaceLeft", "__value": true, "__type": "Bool", "__tile": null, "defUid": 100, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ true ]
+								}] }
 							]
 						},
 						{
@@ -4340,16 +4372,16 @@
 							"__grid": [27,11],
 							"__pivot": [0,0],
 							"__tags": [],
-							"__tile": { "tilesetUid": 58, "x": 32, "y": 160, "w": 16, "h": 16 },
+							"__tile": { "tilesetUid": 58, "x": 16, "y": 768, "w": 16, "h": 16 },
 							"__smartColor": "#6149C1",
 							"iid": "fd1ca8a0-02f0-11ed-9260-d7d1678ae60c",
 							"width": 16,
 							"height": 16,
 							"defUid": 97,
 							"px": [432,176],
-							"fieldInstances": [{ "__identifier": "Ability", "__value": "Air", "__type": "LocalEnum.Ability", "__tile": { "tilesetUid": 58, "x": 32, "y": 160, "w": 16, "h": 16 }, "defUid": 98, "realEditorValues": [{
+							"fieldInstances": [{ "__identifier": "Ability", "__value": "Boots", "__type": "LocalEnum.Ability", "__tile": { "tilesetUid": 58, "x": 16, "y": 768, "w": 16, "h": 16 }, "defUid": 98, "realEditorValues": [{
 								"id": "V_String",
-								"params": ["Air"]
+								"params": ["Boots"]
 							}] }]
 						},
 						{

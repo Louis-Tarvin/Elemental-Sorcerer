@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{Added, Bundle, Changed, Component, GlobalTransform, Query, Res, Vec3},
+    prelude::{Added, Bundle, Changed, Component, GlobalTransform, Query, Res, Transform, Vec3},
     sprite::{SpriteSheetBundle, TextureAtlasSprite},
 };
 use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, LevelSelection, Worldly};
@@ -47,6 +47,21 @@ impl Player {
             }
         }
         false
+    }
+
+    pub fn get_combination_description(&self) -> &str {
+        match self.combination {
+            (Some(Equiptment::Staff), Some(Element::Fire)) => "Left click to cast Fireball",
+            (Some(Equiptment::Staff), Some(Element::Air)) => "Left click to cast a gust of wind",
+            (Some(Equiptment::MagicBoots), Some(Element::Fire)) => {
+                "Jump higher with an explosive kick"
+            }
+            (Some(Equiptment::MagicBoots), Some(Element::Air)) => "Double jump",
+            (Some(Equiptment::MagicBoots), Some(Element::Water)) => {
+                "Flow like water (movement speed up)"
+            }
+            _ => "No effect",
+        }
     }
 }
 
@@ -117,10 +132,11 @@ pub fn animation_state_update(
 
 pub fn set_spawn(
     level_selection: Res<LevelSelection>,
-    mut query: Query<(&mut Player, &GlobalTransform), Added<Player>>,
+    mut query: Query<(&mut Player, &mut Transform, &GlobalTransform), Added<Player>>,
 ) {
-    for (mut player, transform) in query.iter_mut() {
-        player.checkpoint = transform.translation();
+    for (mut player, mut transform, global_transform) in query.iter_mut() {
+        player.checkpoint = global_transform.translation();
         player.checkpoint_level = level_selection.clone();
+        transform.translation.z = 5.0;
     }
 }

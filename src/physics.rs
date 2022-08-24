@@ -2,10 +2,10 @@ use std::time::Duration;
 
 use bevy::{
     prelude::{
-        Added, BuildChildren, Bundle, Children, Commands, Component, Entity, EventReader,
-        GlobalTransform, Query, Res, SystemLabel, Transform, Vec3,
+        Added, AssetServer, Assets, BuildChildren, Bundle, Children, Commands, Component, Entity,
+        EventReader, GlobalTransform, Query, Res, ResMut, SystemLabel, Transform, Vec2, Vec3,
     },
-    sprite::TextureAtlasSprite,
+    sprite::{SpriteSheetBundle, TextureAtlas, TextureAtlasSprite},
     time::{Time, Timer},
 };
 
@@ -16,7 +16,9 @@ use heron::{
 
 use crate::{
     abilities::{Element, Equiptment},
+    animation::Animated,
     debug::DebugSettings,
+    destruction::DestructionTimer,
     entity::player::{AnimationState, Player},
     input::Controllable,
 };
@@ -49,19 +51,30 @@ pub struct PhysicsObjectBundle {
 
 pub fn handle_controllables(
     time: Res<Time>,
+    mut commands: Commands,
     mut query: Query<(
         &mut Velocity,
         &Controllable,
         &Player,
         &mut AnimationState,
         &mut TextureAtlasSprite,
+        &Transform,
         &Children,
     )>,
     mut ground_detectors: Query<&mut GroundDetector>,
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     debug_settings: Res<DebugSettings>,
 ) {
-    for (mut velocity, controllable, player, mut animation, mut texture_atlas, children) in
-        query.iter_mut()
+    for (
+        mut velocity,
+        controllable,
+        player,
+        mut animation,
+        mut texture_atlas,
+        transform,
+        children,
+    ) in query.iter_mut()
     {
         let Controllable {
             left,
@@ -77,14 +90,53 @@ pub fn handle_controllables(
         for &child in children.iter() {
             if let Ok(mut detector) = ground_detectors.get_mut(child) {
                 if jumping && (!detector.coyote_timer.finished() || debug_settings.flying) {
-                    if player.has_equipt(Equiptment::MagicBoots) && player.has_infused(Element::Air)
+                    if player.has_equipt(Equiptment::MagicBoots)
+                        && player.has_infused(Element::Fire)
                     {
                         velocity.linear.y = jump_velocity * 1.3;
+                        let texture_handle = asset_server.load("sprites/explosion.png");
+                        let texture_atlas =
+                            TextureAtlas::from_grid(texture_handle, Vec2::new(32.0, 32.0), 10, 1);
+                        let texture_atlas_handle = texture_atlases.add(texture_atlas);
+                        let mut transform = Transform::from_translation(transform.translation);
+                        transform.translation.y += 8.0;
+                        commands
+                            .spawn()
+                            .insert_bundle(SpriteSheetBundle {
+                                texture_atlas: texture_atlas_handle,
+                                transform,
+                                ..Default::default()
+                            })
+                            .insert(Animated::new(0.05, 0, 10, true))
+                            .insert(DestructionTimer(Timer::from_seconds(0.5, false)));
                     } else {
                         velocity.linear.y = jump_velocity;
                     }
                     // run out the timer
                     detector.coyote_timer.tick(Duration::from_secs(10.0 as u64));
+                } else if jumping
+                    && detector.has_double_jump
+                    && player.has_equipt(Equiptment::MagicBoots)
+                    && player.has_infused(Element::Air)
+                {
+                    // Double jump
+                    velocity.linear.y = jump_velocity;
+                    detector.has_double_jump = false;
+                    let texture_handle = asset_server.load("sprites/poof.png");
+                    let texture_atlas =
+                        TextureAtlas::from_grid(texture_handle, Vec2::new(16.0, 4.0), 3, 1);
+                    let texture_atlas_handle = texture_atlases.add(texture_atlas);
+                    let mut transform = Transform::from_translation(transform.translation);
+                    transform.translation.y -= 8.0;
+                    commands
+                        .spawn()
+                        .insert_bundle(SpriteSheetBundle {
+                            texture_atlas: texture_atlas_handle,
+                            transform,
+                            ..Default::default()
+                        })
+                        .insert(Animated::new(0.1, 0, 3, true))
+                        .insert(DestructionTimer(Timer::from_seconds(0.3, false)));
                 }
 
                 let acceleration = if detector.is_grounded {
@@ -125,19 +177,6 @@ pub fn handle_controllables(
             }
         }
 
-        // if up && !down {
-        // velocity.linear.y = movement_speed;
-        // } else if down && !up {
-        // velocity.linear.y = -movement_speed;
-        // } else if velocity.linear.y != 0.0 {
-        // let delta = movement_speed * time.delta_seconds();
-
-        // if velocity.linear.y < 0.0 {
-        // velocity.linear.y = (velocity.linear.y + delta).max(0.0)
-        // } else {
-        // velocity.linear.y = (velocity.linear.y - delta).min(0.0)
-        // }
-        // }
         if velocity.linear.y > 0.1 {
             if *animation != AnimationState::JumpUp {
                 *animation = AnimationState::JumpUp;
@@ -159,6 +198,7 @@ pub fn handle_controllables(
 #[derive(Default, Component)]
 pub struct GroundDetector {
     pub is_grounded: bool,
+    pub has_double_jump: bool,
     pub coyote_timer: Timer,
 }
 
@@ -169,6 +209,7 @@ pub fn add_ground_sensor(mut commands: Commands, query: Query<Entity, Added<Play
                 .spawn()
                 .insert(GroundDetector {
                     is_grounded: false,
+                    has_double_jump: false,
                     coyote_timer: Timer::from_seconds(0.1, false),
                 })
                 .insert(RigidBody::Sensor)
@@ -207,6 +248,7 @@ pub fn check_grounded(
                 CollisionEvent::Started(a, _b) => {
                     if a.rigid_body_entity() == entity {
                         ground_detector.is_grounded = true;
+                        ground_detector.has_double_jump = true;
                         ground_detector.coyote_timer.reset();
                         ground_detector.coyote_timer.pause();
                     }
