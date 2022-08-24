@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        AssetServer, Assets, Bundle, Changed, Component, Handle, IVec2, Image, Query, Transform,
-        Vec2,
+        Added, AssetServer, Assets, Bundle, Changed, Component, Handle, IVec2, Image, Query,
+        Transform, Vec2,
     },
     sprite::{SpriteSheetBundle, TextureAtlas, TextureAtlasSprite},
 };
@@ -23,6 +23,7 @@ pub struct Enemy;
 pub struct Patrol {
     pub points: Option<(Vec2, Vec2)>,
     pub movement_speed: f32,
+    pub face_left: bool,
 }
 
 impl LdtkEntity for Patrol {
@@ -41,11 +42,21 @@ impl LdtkEntity for Patrol {
             entity_instance.pivot,
         );
 
-        if let Some(ldtk_patrol) = entity_instance
-            .field_instances
-            .iter()
-            .find(|f| f.identifier == *"Point")
+        let field_instances = &entity_instance.field_instances;
+
+        let face_left = if let Some(ldtk_patrol) =
+            field_instances.iter().find(|f| f.identifier == *"FaceLeft")
         {
+            if let FieldValue::Bool(face_left) = &ldtk_patrol.value {
+                *face_left
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+
+        if let Some(ldtk_patrol) = field_instances.iter().find(|f| f.identifier == *"Point") {
             if let FieldValue::Point(Some(ldtk_point)) = &ldtk_patrol.value {
                 let pixel_coords = (ldtk_point.as_vec2() + Vec2::new(0.5, 1.))
                     * Vec2::splat(layer_instance.grid_size as f32);
@@ -55,21 +66,24 @@ impl LdtkEntity for Patrol {
                     layer_instance.c_hei * layer_instance.grid_size,
                     IVec2::new(entity_instance.width, entity_instance.height),
                     entity_instance.pivot,
-                );
+                ) - 8.0;
                 Patrol {
                     points: Some((start, end)),
                     movement_speed: MOVEMENT_SPEED,
+                    face_left,
                 }
             } else {
                 Patrol {
                     points: None,
                     movement_speed: MOVEMENT_SPEED,
+                    face_left,
                 }
             }
         } else {
             Patrol {
                 points: None,
                 movement_speed: MOVEMENT_SPEED,
+                face_left,
             }
         }
     }
@@ -140,5 +154,11 @@ pub fn animation_state_update(
                 animation.end = 6;
             }
         }
+    }
+}
+
+pub fn face_direction(mut query: Query<(&mut TextureAtlasSprite, &Patrol), Added<Patrol>>) {
+    for (mut sprite, patrol) in query.iter_mut() {
+        sprite.flip_x = patrol.face_left;
     }
 }

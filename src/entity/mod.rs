@@ -1,9 +1,12 @@
 use bevy::prelude::{Component, Vec3};
 use bevy_ecs_ldtk::{prelude::FieldValue, EntityInstance};
 use bevy_inspector_egui::Inspectable;
-use heron::{CollisionShape, PhysicMaterial, RigidBody, RotationConstraints};
+use heron::{CollisionLayers, CollisionShape, PhysicMaterial, RigidBody, RotationConstraints};
 
-use crate::{animation::Animated, physics::PhysicsObjectBundle};
+use crate::{
+    animation::Animated,
+    physics::{PhysicsLayers, PhysicsObjectBundle},
+};
 
 pub mod ability;
 pub mod checkpoint;
@@ -42,6 +45,9 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                     restitution: 0.0,
                 },
                 rot_constraints: RotationConstraints::lock(),
+                layer: CollisionLayers::none()
+                    .with_group(PhysicsLayers::Player)
+                    .with_masks(&[PhysicsLayers::Terrain, PhysicsLayers::Enemy]),
                 ..Default::default()
             },
             "Signpost" | "Checkpoint" | "Ability" => PhysicsObjectBundle {
@@ -58,6 +64,8 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                     border_radius: None,
                 },
                 rb: RigidBody::KinematicVelocityBased,
+                layer: CollisionLayers::all_masks::<PhysicsLayers>()
+                    .with_group(PhysicsLayers::Enemy),
                 ..Default::default()
             },
             _ => PhysicsObjectBundle::default(),

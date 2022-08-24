@@ -7,9 +7,9 @@ use bevy::prelude::{
 use bevy_ecs_ldtk::{
     prelude::LayerInstance, GridCoords, LdtkIntCell, LdtkLevel, LevelSelection, Respawn,
 };
-use heron::{CollisionShape, PhysicMaterial, RigidBody};
+use heron::{CollisionLayers, CollisionShape, PhysicMaterial, RigidBody};
 
-use crate::{damage::Hurtbox, entity::player::Player};
+use crate::{damage::Hurtbox, entity::player::Player, physics::PhysicsLayers};
 
 /// This function was copied from the example in bevy_ecs_ldtk. All credit goes to the author
 pub fn update_level_selection(
@@ -225,6 +225,10 @@ pub fn spawn_wall_collision(
                                     / 2.,
                                 0.,
                             ))
+                            .insert(
+                                CollisionLayers::all_masks::<PhysicsLayers>()
+                                    .with_group(PhysicsLayers::Terrain),
+                            )
                             .insert(GlobalTransform::default());
                     }
                 });

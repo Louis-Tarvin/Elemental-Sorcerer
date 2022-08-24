@@ -19,19 +19,19 @@ use super::player::Player;
 
 #[derive(Inspectable, Component, PartialEq, Eq, Clone, Copy)]
 pub enum Ability {
-    Fireball,
-    Jump,
-    Airblast,
-    Speed,
+    Fire,
+    Air,
+    Water,
+    MagicBoots,
 }
 
 impl Display for Ability {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Ability::Fireball => write!(f, "Fireball"),
-            Ability::Jump => write!(f, "Improved Jump"),
-            Ability::Airblast => write!(f, "Air Blast"),
-            Ability::Speed => write!(f, "Increased Speed"),
+            Ability::Fire => write!(f, "Fire"),
+            Ability::Air => write!(f, "Air"),
+            Ability::Water => write!(f, "Water"),
+            Ability::MagicBoots => write!(f, "Magic Boots"),
         }
     }
 }
@@ -52,10 +52,10 @@ impl LdtkEntity for Ability {
         {
             if let FieldValue::Enum(Some(ability)) = &ldtk_ability.value {
                 match ability.as_str() {
-                    "Fireball" => Ability::Fireball,
-                    "Jump" => Ability::Jump,
-                    "Airblast" => Ability::Airblast,
-                    "Speed" => Ability::Speed,
+                    "Fire" => Ability::Fire,
+                    "Air" => Ability::Air,
+                    "Water" => Ability::Water,
+                    "Boots" => Ability::MagicBoots,
                     _ => panic!("Unknown ability enum variant: {}", ability),
                 }
             } else {
@@ -94,20 +94,20 @@ pub fn check_near(
                 if a.rigid_body_entity() == player_entity {
                     if let Ok(ability) = ability_orbs.get(b.rigid_body_entity()) {
                         match ability {
-                            Ability::Fireball => player.unlocked_fireball = true,
-                            Ability::Jump => player.unlocked_jump = true,
-                            Ability::Speed => player.unlocked_speed = true,
-                            Ability::Airblast => player.unlocked_airblast = true,
+                            Ability::Fire => player.unlocked_fire = true,
+                            Ability::Air => player.unlocked_air = true,
+                            Ability::MagicBoots => player.unlocked_boots = true,
+                            Ability::Water => player.unlocked_water = true,
                         }
                         commands.entity(b.rigid_body_entity()).despawn();
                     }
                 } else if b.rigid_body_entity() == player_entity {
                     if let Ok(ability) = ability_orbs.get(a.rigid_body_entity()) {
                         match ability {
-                            Ability::Fireball => player.unlocked_fireball = true,
-                            Ability::Jump => player.unlocked_jump = true,
-                            Ability::Speed => player.unlocked_speed = true,
-                            Ability::Airblast => player.unlocked_airblast = true,
+                            Ability::Fire => player.unlocked_fire = true,
+                            Ability::Air => player.unlocked_air = true,
+                            Ability::MagicBoots => player.unlocked_boots = true,
+                            Ability::Water => player.unlocked_water = true,
                         }
                         commands.entity(a.rigid_body_entity()).despawn();
                     }

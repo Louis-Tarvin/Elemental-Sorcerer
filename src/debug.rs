@@ -5,4 +5,5 @@ pub struct DebugSettings {
     pub flying: bool,
     pub imortality: bool,
     pub unlock_camera: bool,
+    pub unlock_all_abilities: bool,
 }

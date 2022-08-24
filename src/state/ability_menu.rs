@@ -1,8 +1,8 @@
 use bevy::{
     prelude::{
         AssetServer, BuildChildren, Button, ButtonBundle, Changed, Color, Commands, Component,
-        DespawnRecursiveExt, Entity, ImageBundle, Input, KeyCode, MouseButton, NodeBundle, Query,
-        Res, ResMut, TextBundle, With, Without,
+        DespawnRecursiveExt, Entity, Input, KeyCode, NodeBundle, Query, Res, ResMut, TextBundle,
+        With, Without,
     },
     text::{Text, TextStyle},
     ui::{
@@ -12,7 +12,9 @@ use bevy::{
 use heron::PhysicsTime;
 
 use crate::{
-    entity::{ability::Ability, player::Player},
+    abilities::{Element, Equiptment},
+    debug::DebugSettings,
+    entity::player::Player,
     input::Controllable,
 };
 
@@ -38,7 +40,32 @@ pub fn trigger_enter(
     }
 }
 
-pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    player: Query<&Player>,
+    debug_settings: Res<DebugSettings>,
+) {
+    let player = player
+        .get_single()
+        .expect("There should only be one player");
+
+    let button_style = Style {
+        size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+        // center button
+        margin: UiRect {
+            left: Val::Auto,
+            right: Val::Auto,
+            top: Val::Px(10.0),
+            bottom: Val::Px(10.0),
+        },
+        // horizontally center child text
+        justify_content: JustifyContent::Center,
+        // vertically center child text
+        align_items: AlignItems::Center,
+        ..Default::default()
+    };
+
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
@@ -103,88 +130,140 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                             ..Default::default()
                         })
                         .with_children(|parent| {
-                            // Fireball button
+                            // Equiptment buttons wrapper
                             parent
-                                .spawn_bundle(ButtonBundle {
+                                .spawn_bundle(NodeBundle {
                                     style: Style {
-                                        size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                                        // center button
-                                        margin: UiRect::all(Val::Auto),
-                                        // horizontally center child text
+                                        size: Size::new(Val::Percent(50.0), Val::Auto),
                                         justify_content: JustifyContent::Center,
-                                        // vertically center child text
                                         align_items: AlignItems::Center,
+                                        margin: UiRect::all(Val::Auto),
+                                        flex_direction: FlexDirection::ColumnReverse,
                                         ..Default::default()
                                     },
-                                    color: Color::rgb(0.15, 0.15, 0.15).into(),
+                                    color: Color::rgba(0.0, 0.2, 0.0, 0.8).into(),
                                     ..Default::default()
                                 })
-                                .insert(Ability::Fireball)
                                 .with_children(|parent| {
-                                    parent.spawn_bundle(TextBundle::from_section(
-                                        "Fireball",
-                                        TextStyle {
-                                            font: asset_server.load("fonts/roboto.ttf"),
-                                            font_size: 30.0,
-                                            color: Color::WHITE,
-                                        },
-                                    ));
+                                    // Staff button
+                                    parent
+                                        .spawn_bundle(ButtonBundle {
+                                            style: button_style.clone(),
+                                            color: Color::rgb(0.15, 0.15, 0.15).into(),
+                                            ..Default::default()
+                                        })
+                                        .insert(Equiptment::Staff)
+                                        .with_children(|parent| {
+                                            parent.spawn_bundle(TextBundle::from_section(
+                                                "Staff",
+                                                TextStyle {
+                                                    font: asset_server.load("fonts/roboto.ttf"),
+                                                    font_size: 30.0,
+                                                    color: Color::WHITE,
+                                                },
+                                            ));
+                                        });
+                                    // Magic Boots button
+                                    if player.unlocked_boots || debug_settings.unlock_all_abilities
+                                    {
+                                        parent
+                                            .spawn_bundle(ButtonBundle {
+                                                style: button_style.clone(),
+                                                color: Color::rgb(0.15, 0.15, 0.15).into(),
+                                                ..Default::default()
+                                            })
+                                            .insert(Equiptment::MagicBoots)
+                                            .with_children(|parent| {
+                                                parent.spawn_bundle(TextBundle::from_section(
+                                                    "Magic Boots",
+                                                    TextStyle {
+                                                        font: asset_server.load("fonts/roboto.ttf"),
+                                                        font_size: 30.0,
+                                                        color: Color::WHITE,
+                                                    },
+                                                ));
+                                            });
+                                    }
                                 });
 
-                            // Jump button
+                            // Element buttons wrapper
                             parent
-                                .spawn_bundle(ButtonBundle {
+                                .spawn_bundle(NodeBundle {
                                     style: Style {
-                                        size: Size::new(Val::Px(200.0), Val::Px(65.0)),
-                                        // center button
-                                        margin: UiRect::all(Val::Auto),
-                                        // horizontally center child text
+                                        size: Size::new(Val::Percent(50.0), Val::Auto),
                                         justify_content: JustifyContent::Center,
-                                        // vertically center child text
                                         align_items: AlignItems::Center,
+                                        margin: UiRect::all(Val::Auto),
+                                        flex_direction: FlexDirection::ColumnReverse,
                                         ..Default::default()
                                     },
-                                    color: Color::rgb(0.15, 0.15, 0.15).into(),
+                                    color: Color::rgba(0.0, 0.0, 0.2, 0.8).into(),
                                     ..Default::default()
                                 })
-                                .insert(Ability::Jump)
                                 .with_children(|parent| {
-                                    parent.spawn_bundle(TextBundle::from_section(
-                                        "Improved Jump",
-                                        TextStyle {
-                                            font: asset_server.load("fonts/roboto.ttf"),
-                                            font_size: 30.0,
-                                            color: Color::WHITE,
-                                        },
-                                    ));
-                                });
+                                    // Fire button
+                                    if player.unlocked_fire || debug_settings.unlock_all_abilities {
+                                        parent
+                                            .spawn_bundle(ButtonBundle {
+                                                style: button_style.clone(),
+                                                color: Color::rgb(0.15, 0.15, 0.15).into(),
+                                                ..Default::default()
+                                            })
+                                            .insert(Element::Fire)
+                                            .with_children(|parent| {
+                                                parent.spawn_bundle(TextBundle::from_section(
+                                                    "Fire",
+                                                    TextStyle {
+                                                        font: asset_server.load("fonts/roboto.ttf"),
+                                                        font_size: 30.0,
+                                                        color: Color::WHITE,
+                                                    },
+                                                ));
+                                            });
+                                    }
 
-                            // Speed button
-                            parent
-                                .spawn_bundle(ButtonBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                                        // center button
-                                        margin: UiRect::all(Val::Auto),
-                                        // horizontally center child text
-                                        justify_content: JustifyContent::Center,
-                                        // vertically center child text
-                                        align_items: AlignItems::Center,
-                                        ..Default::default()
-                                    },
-                                    color: Color::rgb(0.15, 0.15, 0.15).into(),
-                                    ..Default::default()
-                                })
-                                .insert(Ability::Speed)
-                                .with_children(|parent| {
-                                    parent.spawn_bundle(TextBundle::from_section(
-                                        "Speed",
-                                        TextStyle {
-                                            font: asset_server.load("fonts/roboto.ttf"),
-                                            font_size: 30.0,
-                                            color: Color::WHITE,
-                                        },
-                                    ));
+                                    // Air button
+                                    if player.unlocked_air || debug_settings.unlock_all_abilities {
+                                        parent
+                                            .spawn_bundle(ButtonBundle {
+                                                style: button_style.clone(),
+                                                color: Color::rgb(0.15, 0.15, 0.15).into(),
+                                                ..Default::default()
+                                            })
+                                            .insert(Element::Air)
+                                            .with_children(|parent| {
+                                                parent.spawn_bundle(TextBundle::from_section(
+                                                    "Air",
+                                                    TextStyle {
+                                                        font: asset_server.load("fonts/roboto.ttf"),
+                                                        font_size: 30.0,
+                                                        color: Color::WHITE,
+                                                    },
+                                                ));
+                                            });
+                                    }
+
+                                    // Water button
+                                    if player.unlocked_water || debug_settings.unlock_all_abilities
+                                    {
+                                        parent
+                                            .spawn_bundle(ButtonBundle {
+                                                style: button_style,
+                                                color: Color::rgb(0.15, 0.15, 0.15).into(),
+                                                ..Default::default()
+                                            })
+                                            .insert(Element::Water)
+                                            .with_children(|parent| {
+                                                parent.spawn_bundle(TextBundle::from_section(
+                                                    "Water",
+                                                    TextStyle {
+                                                        font: asset_server.load("fonts/roboto.ttf"),
+                                                        font_size: 30.0,
+                                                        color: Color::WHITE,
+                                                    },
+                                                ));
+                                            });
+                                    }
                                 });
                         });
 
@@ -201,10 +280,15 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                             ..Default::default()
                         })
                         .with_children(|parent| {
-                            // Slot 1 text
+                            // Equiptment text
+                            let text = if let Some(equiptment) = player.combination.0 {
+                                equiptment.to_string()
+                            } else {
+                                "None".to_string()
+                            };
                             parent
                                 .spawn_bundle(TextBundle::from_section(
-                                    "Slot 1: None",
+                                    "Equipt: ".to_string() + &text,
                                     TextStyle {
                                         font: asset_server.load("fonts/roboto.ttf"),
                                         font_size: 30.0,
@@ -212,10 +296,16 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                                     },
                                 ))
                                 .insert(Slot1Text);
-                            // Slot 2 text
+
+                            // Element text
+                            let text = if let Some(element) = player.combination.1 {
+                                element.to_string()
+                            } else {
+                                "None".to_string()
+                            };
                             parent
                                 .spawn_bundle(TextBundle::from_section(
-                                    "Slot 2: None",
+                                    "Element: ".to_string() + &text,
                                     TextStyle {
                                         font: asset_server.load("fonts/roboto.ttf"),
                                         font_size: 30.0,
@@ -229,31 +319,51 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(UiRootNode);
 }
 
-pub fn button_system(
-    mouse_input: Res<Input<MouseButton>>,
-    mut interaction_query: Query<(&Interaction, &Ability), With<Button>>,
+pub fn equiptment_button_system(
+    mut interaction_query: Query<
+        (&Interaction, &Equiptment, &mut UiColor),
+        (With<Button>, Changed<Interaction>),
+    >,
     mut player_query: Query<&mut Player>,
 ) {
-    if mouse_input.just_pressed(MouseButton::Left) {
-        for (interaction, ability) in &mut interaction_query {
-            match *interaction {
-                Interaction::Clicked | Interaction::Hovered => {
-                    for mut player in player_query.iter_mut() {
-                        player.equipt_abilities.0 = Some(*ability);
-                    }
+    for (interaction, equiptment, mut color) in &mut interaction_query {
+        match *interaction {
+            Interaction::Clicked => {
+                *color = Color::rgb(0.55, 0.55, 0.55).into();
+                for mut player in player_query.iter_mut() {
+                    player.combination.0 = Some(*equiptment);
                 }
-                _ => {}
+            }
+            Interaction::Hovered => {
+                *color = Color::rgb(0.35, 0.35, 0.35).into();
+            }
+            Interaction::None => {
+                *color = Color::rgb(0.15, 0.15, 0.15).into();
             }
         }
-    } else if mouse_input.just_pressed(MouseButton::Right) {
-        for (interaction, ability) in &mut interaction_query {
-            match *interaction {
-                Interaction::Clicked | Interaction::Hovered => {
-                    for mut player in player_query.iter_mut() {
-                        player.equipt_abilities.1 = Some(*ability);
-                    }
+    }
+}
+
+pub fn element_button_system(
+    mut interaction_query: Query<
+        (&Interaction, &Element, &mut UiColor),
+        (With<Button>, Changed<Interaction>),
+    >,
+    mut player_query: Query<&mut Player>,
+) {
+    for (interaction, element, mut color) in &mut interaction_query {
+        match *interaction {
+            Interaction::Clicked => {
+                *color = Color::rgb(0.55, 0.55, 0.55).into();
+                for mut player in player_query.iter_mut() {
+                    player.combination.1 = Some(*element);
                 }
-                _ => {}
+            }
+            Interaction::Hovered => {
+                *color = Color::rgb(0.35, 0.35, 0.35).into();
+            }
+            Interaction::None => {
+                *color = Color::rgb(0.15, 0.15, 0.15).into();
             }
         }
     }
@@ -265,15 +375,15 @@ pub fn update_equipt(
     mut slot_2: Query<&mut Text, (With<Slot2Text>, Without<Slot1Text>)>,
 ) {
     for player in player_query.iter() {
-        if let Some(ability) = player.equipt_abilities.0 {
-            let mut new_text = "Slot 1: ".to_string();
+        if let Some(ability) = player.combination.0 {
+            let mut new_text = "Equipt: ".to_string();
             new_text += &ability.to_string();
             for mut text in slot_1.iter_mut() {
                 text.sections[0].value = new_text.clone();
             }
         }
-        if let Some(ability) = player.equipt_abilities.1 {
-            let mut new_text = "Slot 2: ".to_string();
+        if let Some(ability) = player.combination.1 {
+            let mut new_text = "Element: ".to_string();
             new_text += &ability.to_string();
             for mut text in slot_2.iter_mut() {
                 text.sections[0].value = new_text.clone();

@@ -1,13 +1,10 @@
 #![allow(clippy::type_complexity)]
 use bevy::{
     prelude::{
-        App, AssetServer, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed, ClearColor,
-        Color, Commands, ParallelSystemDescriptorCoercion, Query, Res, SystemSet, TextBundle, Vec3,
-        With,
+        App, AssetServer, Camera2dBundle, ClearColor, Color, Commands,
+        ParallelSystemDescriptorCoercion, Res, SystemSet, Vec3,
     },
     render::texture::ImageSettings,
-    text::TextStyle,
-    ui::{AlignItems, Interaction, JustifyContent, Size, Style, UiColor, UiRect, Val},
     DefaultPlugins,
 };
 use bevy_ecs_ldtk::{
@@ -32,6 +29,7 @@ mod animation;
 mod camera;
 mod damage;
 mod debug;
+mod destruction;
 mod entity;
 mod input;
 mod level;
@@ -83,6 +81,7 @@ fn main() {
                 .with_system(animation::system)
                 .with_system(camera::follow)
                 .with_system(camera::set_zoom)
+                .with_system(destruction::destroy)
                 .with_system(physics::add_ground_sensor)
                 .with_system(physics::check_grounded.label(physics::PhysicsLabel::CheckGrounded))
                 .with_system(
@@ -91,6 +90,8 @@ fn main() {
                         .after(physics::PhysicsLabel::CheckGrounded),
                 )
                 .with_system(state::ability_menu::trigger_enter)
+                .with_system(abilities::use_ability)
+                .with_system(abilities::projectile_collision)
                 .with_system(damage::detect)
                 .with_system(damage::kill.after(physics::PhysicsLabel::HandleControllables))
                 .with_system(damage::respawn)
@@ -98,6 +99,7 @@ fn main() {
                 // .with_system(entity::player::set_spawn)
                 .with_system(entity::goblin::patrol)
                 .with_system(entity::goblin::animation_state_update)
+                .with_system(entity::goblin::face_direction)
                 .with_system(entity::ability::check_near)
                 .with_system(entity::signpost::spawn_text)
                 .with_system(entity::signpost::check_near)
@@ -109,7 +111,8 @@ fn main() {
         .add_system_set(
             SystemSet::on_update(State::AbilityMenu)
                 .with_system(state::ability_menu::trigger_leave)
-                .with_system(state::ability_menu::button_system)
+                .with_system(state::ability_menu::equiptment_button_system)
+                .with_system(state::ability_menu::element_button_system)
                 .with_system(state::ability_menu::update_equipt),
         )
         .register_ldtk_int_cell::<level::WallBundle>(1)

@@ -10,15 +10,14 @@ use bevy::{
 };
 
 use heron::{
-    CollisionEvent, CollisionShape, PhysicMaterial, RigidBody, RotationConstraints, Velocity,
+    CollisionEvent, CollisionLayers, CollisionShape, PhysicMaterial, PhysicsLayer, RigidBody,
+    RotationConstraints, Velocity,
 };
 
 use crate::{
+    abilities::{Element, Equiptment},
     debug::DebugSettings,
-    entity::{
-        ability::Ability,
-        player::{AnimationState, Player},
-    },
+    entity::player::{AnimationState, Player},
     input::Controllable,
 };
 
@@ -28,6 +27,16 @@ pub enum PhysicsLabel {
     CheckGrounded,
 }
 
+#[derive(PhysicsLayer)]
+pub enum PhysicsLayers {
+    Terrain,
+    Player,
+    Enemy,
+    Fireball,
+    Wind,
+    Movable,
+}
+
 #[derive(Bundle, Default)]
 pub struct PhysicsObjectBundle {
     pub collider: CollisionShape,
@@ -35,6 +44,7 @@ pub struct PhysicsObjectBundle {
     pub velocity: Velocity,
     pub material: PhysicMaterial,
     pub rot_constraints: RotationConstraints,
+    pub layer: CollisionLayers,
 }
 
 pub fn handle_controllables(
@@ -67,8 +77,9 @@ pub fn handle_controllables(
         for &child in children.iter() {
             if let Ok(mut detector) = ground_detectors.get_mut(child) {
                 if jumping && (!detector.coyote_timer.finished() || debug_settings.flying) {
-                    if player.has_equipt(Ability::Jump) {
-                        velocity.linear.y = jump_velocity * 1.5;
+                    if player.has_equipt(Equiptment::MagicBoots) && player.has_infused(Element::Air)
+                    {
+                        velocity.linear.y = jump_velocity * 1.3;
                     } else {
                         velocity.linear.y = jump_velocity;
                     }
@@ -82,7 +93,9 @@ pub fn handle_controllables(
                     acceleration / 2.0
                 };
 
-                let max_speed = if player.has_equipt(Ability::Speed) {
+                let max_speed = if player.has_equipt(Equiptment::MagicBoots)
+                    && player.has_infused(Element::Water)
+                {
                     max_speed * 1.5
                 } else {
                     max_speed
@@ -149,7 +162,7 @@ pub struct GroundDetector {
     pub coyote_timer: Timer,
 }
 
-pub fn add_ground_sensor(mut commands: Commands, query: Query<Entity, Added<Controllable>>) {
+pub fn add_ground_sensor(mut commands: Commands, query: Query<Entity, Added<Player>>) {
     for entity in query.iter() {
         commands.entity(entity).with_children(|parent| {
             parent
@@ -161,12 +174,17 @@ pub fn add_ground_sensor(mut commands: Commands, query: Query<Entity, Added<Cont
                 .insert(RigidBody::Sensor)
                 .insert(CollisionShape::Cuboid {
                     half_extends: Vec3 {
-                        x: 4.0,
+                        x: 3.0,
                         y: 3.0,
                         z: 1.0,
                     },
                     border_radius: None,
                 })
+                .insert(
+                    CollisionLayers::none()
+                        .with_group(PhysicsLayers::Player)
+                        .with_mask(PhysicsLayers::Terrain),
+                )
                 .insert(Transform::from_translation(Vec3 {
                     x: 0.0,
                     y: -6.0,
