@@ -9,7 +9,11 @@ use bevy_ecs_ldtk::{
 };
 use heron::{CollisionLayers, CollisionShape, PhysicMaterial, RigidBody};
 
-use crate::{damage::Hurtbox, entity::player::Player, physics::PhysicsLayers};
+use crate::{
+    damage::Hurtbox,
+    entity::player::Player,
+    physics::{GroundDetector, PhysicsLayers},
+};
 
 /// This function was copied from the example in bevy_ecs_ldtk. All credit goes to the author
 pub fn update_level_selection(
@@ -242,6 +246,7 @@ pub fn restart_level(
     level_query: Query<Entity, With<Handle<LdtkLevel>>>,
     mut player_query: Query<(&mut Transform, &Player)>,
     mut level_selection: ResMut<LevelSelection>,
+    mut detectors: Query<&mut GroundDetector>,
     input: Res<Input<KeyCode>>,
 ) {
     if input.just_pressed(KeyCode::R) {
@@ -251,6 +256,9 @@ pub fn restart_level(
         }
         for level_entity in level_query.iter() {
             commands.entity(level_entity).insert(Respawn);
+        }
+        for mut detector in detectors.iter_mut() {
+            detector.active_collisions = 0;
         }
     }
 }

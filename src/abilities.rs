@@ -5,7 +5,7 @@ use bevy::{
         AssetServer, Assets, Commands, Component, DespawnRecursiveExt, Entity, EventReader,
         GlobalTransform, Query, Res, ResMut, Transform, Vec2, Vec3, With, Without,
     },
-    sprite::{SpriteSheetBundle, TextureAtlas, TextureAtlasSprite},
+    sprite::{Sprite, SpriteBundle, SpriteSheetBundle, TextureAtlas, TextureAtlasSprite},
     time::{Time, Timer},
 };
 use bevy_inspector_egui::Inspectable;
@@ -15,8 +15,9 @@ use heron::{
 
 use crate::{
     animation::Animated,
+    damage::Hurtbox,
     destruction::DestructionTimer,
-    entity::{block::Block, goblin::Enemy, player::Player},
+    entity::{block::Block, goblin::Enemy, lava::Lava, player::Player, Flamable},
     input::Controllable,
     physics::{PhysicsLayers, PhysicsObjectBundle},
 };
@@ -55,6 +56,7 @@ impl Display for Element {
 pub enum Projectile {
     Fireball,
     Wind,
+    Water,
 }
 
 pub fn use_ability(
@@ -118,7 +120,7 @@ pub fn use_ability(
                     .insert(
                         CollisionLayers::none()
                             .with_group(PhysicsLayers::Fireball)
-                            .with_mask(PhysicsLayers::Enemy),
+                            .with_masks([PhysicsLayers::Enemy, PhysicsLayers::Wood]),
                     );
             } else if player.has_infused(Element::Air) {
                 controllable.ability_timer.reset();
@@ -165,6 +167,39 @@ pub fn use_ability(
                             .with_group(PhysicsLayers::Wind)
                             .with_mask(PhysicsLayers::Movable),
                     );
+            } else if player.has_infused(Element::Water) {
+                controllable.ability_timer.reset();
+                let vel_x = if sprite.flip_x { -100.0 } else { 100.0 };
+                let texture_handle = asset_server.load("sprites/droplet.png");
+                let mut projectile_sprite = Sprite::default();
+                if sprite.flip_x {
+                    projectile_sprite.flip_x = true;
+                }
+                commands
+                    .spawn()
+                    .insert_bundle(SpriteBundle {
+                        transform: Transform::from_translation(transform.translation()),
+                        texture: texture_handle,
+                        sprite: projectile_sprite,
+                        ..Default::default()
+                    })
+                    .insert(Projectile::Water)
+                    .insert_bundle(PhysicsObjectBundle {
+                        collider: CollisionShape::Sphere { radius: 4.0 },
+                        rb: RigidBody::Dynamic,
+                        rot_constraints: RotationConstraints::lock(),
+                        velocity: Velocity::from_linear(Vec3 {
+                            x: vel_x,
+                            y: 0.0,
+                            z: 0.0,
+                        }),
+                        ..Default::default()
+                    })
+                    .insert(
+                        CollisionLayers::none()
+                            .with_group(PhysicsLayers::Water)
+                            .with_masks([PhysicsLayers::Terrain, PhysicsLayers::Lava]),
+                    );
             }
         }
     }
@@ -172,18 +207,25 @@ pub fn use_ability(
 
 pub fn projectile_collision(
     mut commands: Commands,
-    projectiles: Query<(&Projectile, &Velocity), Without<Block>>,
-    enemies: Query<(Entity, &Enemy)>,
+    mut projectiles: Query<
+        (&Projectile, &Velocity, &mut CollisionLayers),
+        (Without<Block>, Without<Lava>),
+    >,
+    flamables: Query<(Entity, &Flamable)>,
     mut blocks: Query<&mut Velocity, (With<Block>, Without<Projectile>)>,
+    mut lava: Query<
+        (Entity, &mut Animated, &mut RigidBody, &mut CollisionLayers),
+        (With<Lava>, Without<Projectile>),
+    >,
     mut collisions: EventReader<CollisionEvent>,
 ) {
     for event in collisions.iter().filter(|e| e.is_started()) {
         let (e1, e2) = event.rigid_body_entities();
-        if let Ok((projectile, projectile_velocity)) = projectiles.get(e1) {
+        if let Ok((projectile, projectile_velocity, mut layers)) = projectiles.get_mut(e1) {
             // entity 1 is projectile
             match projectile {
                 Projectile::Fireball => {
-                    if enemies.get(e2).is_ok() {
+                    if flamables.get(e2).is_ok() {
                         // despawn
                         commands.entity(e1).despawn_recursive();
                         commands.entity(e2).despawn_recursive();
@@ -192,15 +234,27 @@ pub fn projectile_collision(
                 Projectile::Wind => {
                     if let Ok(mut velocity) = blocks.get_mut(e2) {
                         // push
-                        velocity.linear = projectile_velocity.linear;
+                        velocity.linear = projectile_velocity.linear * 4.0;
+                        *layers = layers.without_mask(PhysicsLayers::Movable);
+                    }
+                }
+                Projectile::Water => {
+                    commands.entity(e1).despawn();
+                    if let Ok((entity, mut animation, mut rb, mut layers)) = lava.get_mut(e2) {
+                        // turn lava to stone
+                        animation.start = 8;
+                        animation.end = 9;
+                        *rb = RigidBody::Static;
+                        commands.entity(entity).remove::<Hurtbox>();
+                        *layers = layers.with_group(PhysicsLayers::Terrain);
                     }
                 }
             }
-        } else if let Ok((projectile, projectile_velocity)) = projectiles.get(e2) {
+        } else if let Ok((projectile, projectile_velocity, mut layers)) = projectiles.get_mut(e2) {
             // entity 2 is projectile
             match projectile {
                 Projectile::Fireball => {
-                    if enemies.get(e1).is_ok() {
+                    if flamables.get(e1).is_ok() {
                         // despawn
                         commands.entity(e1).despawn_recursive();
                         commands.entity(e2).despawn_recursive();
@@ -210,6 +264,18 @@ pub fn projectile_collision(
                     if let Ok(mut velocity) = blocks.get_mut(e1) {
                         // push
                         velocity.linear = projectile_velocity.linear;
+                        *layers = layers.without_mask(PhysicsLayers::Movable);
+                    }
+                }
+                Projectile::Water => {
+                    commands.entity(e2).despawn();
+                    if let Ok((entity, mut animation, mut rb, mut layers)) = lava.get_mut(e1) {
+                        // turn lava to stone
+                        animation.start = 8;
+                        animation.end = 9;
+                        *rb = RigidBody::Static;
+                        commands.entity(entity).remove::<Hurtbox>();
+                        *layers = layers.with_group(PhysicsLayers::Terrain);
                     }
                 }
             }

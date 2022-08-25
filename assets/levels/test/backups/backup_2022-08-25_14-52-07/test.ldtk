@@ -6156,6 +6156,20 @@
 							}] }]
 						},
 						{
+							"__identifier": "Player",
+							"__grid": [2,5],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 0, "y": 240, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "20b3ecc0-02f0-11ed-b722-4fe984921312",
+							"width": 16,
+							"height": 16,
+							"defUid": 26,
+							"px": [32,80],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "WoodBlock",
 							"__grid": [9,10],
 							"__pivot": [0,0],
@@ -6703,20 +6717,6 @@
 							"height": 16,
 							"defUid": 107,
 							"px": [96,160],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Player",
-							"__grid": [33,7],
-							"__pivot": [0,0],
-							"__tags": [],
-							"__tile": { "tilesetUid": 58, "x": 0, "y": 240, "w": 16, "h": 16 },
-							"__smartColor": "#94D9B3",
-							"iid": "20b3ecc0-02f0-11ed-b722-4fe984921312",
-							"width": 16,
-							"height": 16,
-							"defUid": 26,
-							"px": [528,112],
 							"fieldInstances": []
 						}
 					]

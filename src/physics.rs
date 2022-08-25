@@ -33,10 +33,14 @@ pub enum PhysicsLabel {
 pub enum PhysicsLayers {
     Terrain,
     Player,
+    Interactable,
     Enemy,
     Fireball,
     Wind,
     Movable,
+    Wood,
+    Lava,
+    Water,
 }
 
 #[derive(Bundle, Default)]
@@ -200,6 +204,7 @@ pub struct GroundDetector {
     pub is_grounded: bool,
     pub has_double_jump: bool,
     pub coyote_timer: Timer,
+    pub active_collisions: u8,
 }
 
 pub fn add_ground_sensor(mut commands: Commands, query: Query<Entity, Added<Player>>) {
@@ -211,6 +216,7 @@ pub fn add_ground_sensor(mut commands: Commands, query: Query<Entity, Added<Play
                     is_grounded: false,
                     has_double_jump: false,
                     coyote_timer: Timer::from_seconds(0.1, false),
+                    active_collisions: 0,
                 })
                 .insert(RigidBody::Sensor)
                 .insert(CollisionShape::Cuboid {
@@ -224,7 +230,7 @@ pub fn add_ground_sensor(mut commands: Commands, query: Query<Entity, Added<Play
                 .insert(
                     CollisionLayers::none()
                         .with_group(PhysicsLayers::Player)
-                        .with_mask(PhysicsLayers::Terrain),
+                        .with_masks([PhysicsLayers::Terrain, PhysicsLayers::Movable]),
                 )
                 .insert(Transform::from_translation(Vec3 {
                     x: 0.0,
@@ -245,20 +251,25 @@ pub fn check_grounded(
         ground_detector.coyote_timer.tick(time.delta());
         for collision in collisions.iter() {
             match collision {
-                CollisionEvent::Started(a, _b) => {
-                    if a.rigid_body_entity() == entity {
-                        ground_detector.is_grounded = true;
-                        ground_detector.has_double_jump = true;
-                        ground_detector.coyote_timer.reset();
-                        ground_detector.coyote_timer.pause();
+                CollisionEvent::Started(a, b) => {
+                    if a.rigid_body_entity() == entity || b.rigid_body_entity() == entity {
+                        ground_detector.active_collisions += 1;
                     }
                 }
-                CollisionEvent::Stopped(a, _b) => {
-                    if a.rigid_body_entity() == entity {
-                        ground_detector.is_grounded = false;
-                        ground_detector.coyote_timer.unpause();
+                CollisionEvent::Stopped(a, b) => {
+                    if a.rigid_body_entity() == entity || b.rigid_body_entity() == entity {
+                        ground_detector.active_collisions -= 1;
                     }
                 }
+            }
+            if ground_detector.active_collisions > 0 {
+                ground_detector.is_grounded = true;
+                ground_detector.has_double_jump = true;
+                ground_detector.coyote_timer.reset();
+                ground_detector.coyote_timer.pause();
+            } else {
+                ground_detector.is_grounded = false;
+                ground_detector.coyote_timer.unpause();
             }
         }
     }

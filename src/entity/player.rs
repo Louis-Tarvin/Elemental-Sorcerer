@@ -53,6 +53,7 @@ impl Player {
         match self.combination {
             (Some(Equiptment::Staff), Some(Element::Fire)) => "Left click to cast Fireball",
             (Some(Equiptment::Staff), Some(Element::Air)) => "Left click to cast a gust of wind",
+            (Some(Equiptment::Staff), Some(Element::Water)) => "Left click to summon water",
             (Some(Equiptment::MagicBoots), Some(Element::Fire)) => {
                 "Jump higher with an explosive kick"
             }

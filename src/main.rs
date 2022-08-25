@@ -15,13 +15,14 @@ use bevy_inspector_egui::{InspectorPlugin, RegisterInspectable, WorldInspectorPl
 use debug::DebugSettings;
 use entity::{
     ability::AbilityBundle,
-    block::BlockBundle,
+    block::{BlockBundle, WoodBlockBundle},
     checkpoint::CheckpointBundle,
     goblin::GoblinBundle,
+    lava::LavaBundle,
     player::{Player, PlayerBundle},
     signpost::SignpostBundle,
 };
-use heron::{Gravity, PhysicsPlugin};
+use heron::{Gravity, PhysicsPlugin, PhysicsSystem};
 use input::Controllable;
 use state::State;
 
@@ -54,7 +55,7 @@ fn main() {
         .register_inspectable::<Player>()
         .insert_resource(ClearColor(Color::rgb(0.133, 0.122, 0.192)))
         .insert_resource(DebugSettings::default())
-        .insert_resource(LevelSelection::Index(5))
+        .insert_resource(LevelSelection::Index(9))
         .insert_resource(LdtkSettings {
             level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
                 load_level_neighbors: true,
@@ -66,15 +67,10 @@ fn main() {
         .add_system_set(
             SystemSet::on_update(State::MainMenu).with_system(state::main_menu::button_system),
         )
-        .add_system_set(
-            SystemSet::on_enter(State::InGame)
-                // .with_system(spawn_player)
-                .with_system(setup),
-        )
+        .add_system_set(SystemSet::on_enter(State::InGame).with_system(setup))
         .add_system_set(
             SystemSet::on_update(State::InGame)
-                .with_system(input::system)
-                .label(input::InputLabel::ControllableUpdate)
+                .with_system(input::system.label(input::InputLabel::ControllableUpdate))
                 .with_system(level::spawn_wall_collision)
                 .with_system(level::spawn_spike_collision)
                 .with_system(level::update_level_selection)
@@ -84,11 +80,16 @@ fn main() {
                 .with_system(camera::set_zoom)
                 .with_system(destruction::destroy)
                 .with_system(physics::add_ground_sensor)
-                .with_system(physics::check_grounded.label(physics::PhysicsLabel::CheckGrounded))
+                .with_system(
+                    physics::check_grounded
+                        .label(physics::PhysicsLabel::CheckGrounded)
+                        .after(input::InputLabel::ControllableUpdate),
+                )
                 .with_system(
                     physics::handle_controllables
                         .label(physics::PhysicsLabel::HandleControllables)
-                        .after(physics::PhysicsLabel::CheckGrounded),
+                        .after(physics::PhysicsLabel::CheckGrounded)
+                        .before(PhysicsSystem::TransformUpdate),
                 )
                 .with_system(state::ability_menu::trigger_enter)
                 .with_system(abilities::use_ability)
@@ -96,7 +97,10 @@ fn main() {
                 .with_system(damage::detect)
                 .with_system(damage::kill.after(physics::PhysicsLabel::HandleControllables))
                 .with_system(damage::respawn)
-                .with_system(entity::player::animation_state_update)
+                .with_system(
+                    entity::player::animation_state_update
+                        .after(physics::PhysicsLabel::HandleControllables),
+                )
                 .with_system(entity::player::set_spawn)
                 .with_system(entity::goblin::patrol)
                 .with_system(entity::goblin::animation_state_update)
@@ -124,6 +128,8 @@ fn main() {
         .register_ldtk_entity::<AbilityBundle>("Ability")
         .register_ldtk_entity::<GoblinBundle>("Goblin")
         .register_ldtk_entity::<BlockBundle>("Block")
+        .register_ldtk_entity::<WoodBlockBundle>("WoodBlock")
+        .register_ldtk_entity::<LavaBundle>("Lava")
         .run();
 }
 

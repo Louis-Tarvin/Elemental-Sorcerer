@@ -14,6 +14,8 @@ use heron::Velocity;
 
 use crate::{animation::Animated, damage::Hurtbox, physics::PhysicsObjectBundle};
 
+use super::Flamable;
+
 const MOVEMENT_SPEED: f32 = 20.0;
 
 #[derive(Component, Default)]
@@ -106,6 +108,7 @@ pub struct GoblinBundle {
     #[sprite_sheet_bundle("sprites/goblin_spritesheet.png", 16.0, 16.0, 6, 5, 0.0, 0.0, 0)]
     pub sprite_sheet_bundle: SpriteSheetBundle,
     pub enemy: Enemy,
+    pub flamable: Flamable,
     pub hurtbox: Hurtbox,
     #[bundle]
     #[from_entity_instance]

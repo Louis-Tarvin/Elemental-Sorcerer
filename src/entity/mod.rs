@@ -12,8 +12,12 @@ pub mod ability;
 pub mod block;
 pub mod checkpoint;
 pub mod goblin;
+pub mod lava;
 pub mod player;
 pub mod signpost;
+
+#[derive(Component, Default)]
+pub struct Flamable;
 
 impl From<EntityInstance> for Animated {
     fn from(entity_instance: EntityInstance) -> Self {
@@ -22,6 +26,7 @@ impl From<EntityInstance> for Animated {
             "Checkpoint" => Animated::new(0.1, 0, 9, false),
             "Goblin" => Animated::new(0.1, 18, 22, false),
             "Ability" => Animated::new(0.1, 0, 6, false),
+            "Lava" => Animated::new(0.2, 0, 8, false),
             _ => Animated::new(0.1, 0, 1, false),
         }
     }
@@ -52,6 +57,8 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                         PhysicsLayers::Terrain,
                         PhysicsLayers::Enemy,
                         PhysicsLayers::Movable,
+                        PhysicsLayers::Interactable,
+                        PhysicsLayers::Lava,
                     ]),
                 ..Default::default()
             },
@@ -61,6 +68,8 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                     border_radius: None,
                 },
                 rb: RigidBody::Sensor,
+                layer: CollisionLayers::all_masks::<PhysicsLayers>()
+                    .with_group(PhysicsLayers::Interactable),
                 ..Default::default()
             },
             "Goblin" => PhysicsObjectBundle {
@@ -79,13 +88,41 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                     border_radius: None,
                 },
                 material: PhysicMaterial {
-                    friction: 0.5,
+                    friction: 0.3,
                     density: 1000.0,
                     restitution: 0.0,
                 },
                 rb: RigidBody::Dynamic,
                 layer: CollisionLayers::all_masks::<PhysicsLayers>()
                     .with_group(PhysicsLayers::Movable),
+                ..Default::default()
+            },
+            "WoodBlock" => PhysicsObjectBundle {
+                collider: CollisionShape::Cuboid {
+                    half_extends: Vec3::splat(8.0),
+                    border_radius: None,
+                },
+                material: PhysicMaterial {
+                    friction: 0.0,
+                    ..Default::default()
+                },
+                rb: RigidBody::Static,
+                layer: CollisionLayers::all_masks::<PhysicsLayers>()
+                    .with_groups([PhysicsLayers::Terrain, PhysicsLayers::Wood]),
+                ..Default::default()
+            },
+            "Lava" => PhysicsObjectBundle {
+                collider: CollisionShape::Cuboid {
+                    half_extends: Vec3 {
+                        x: 8.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                    border_radius: None,
+                },
+                rb: RigidBody::Sensor,
+                layer: CollisionLayers::all_masks::<PhysicsLayers>()
+                    .with_group(PhysicsLayers::Lava),
                 ..Default::default()
             },
             _ => PhysicsObjectBundle::default(),

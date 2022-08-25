@@ -29,6 +29,8 @@ pub struct Controllable {
     pub ability: bool,
     #[inspectable(ignore)]
     pub ability_timer: Timer,
+    #[inspectable(ignore)]
+    pub jump_buffer: Timer,
 }
 
 impl Controllable {
@@ -45,7 +47,8 @@ impl Controllable {
             jumping: false,
             interacting: false,
             ability: false,
-            ability_timer: Timer::from_seconds(1.0, false),
+            ability_timer: Timer::from_seconds(0.3, false),
+            jump_buffer: Timer::from_seconds(0.2, false),
         }
     }
 }
