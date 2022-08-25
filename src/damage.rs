@@ -12,6 +12,7 @@ use crate::{
     debug::DebugSettings,
     entity::player::{AnimationState, Player},
     input::Controllable,
+    physics::GroundDetector,
 };
 
 #[derive(Component, Default)]
@@ -73,6 +74,7 @@ pub fn respawn(
     mut player: Query<(Entity, &mut Transform, &mut RespawnTimer, &Player)>,
     level_query: Query<Entity, With<Handle<LdtkLevel>>>,
     mut level_selection: ResMut<LevelSelection>,
+    mut detectors: Query<&mut GroundDetector>,
     time: Res<Time>,
 ) {
     for (entity, mut transform, mut timer, player) in player.iter_mut() {
@@ -88,6 +90,9 @@ pub fn respawn(
             for level_entity in level_query.iter() {
                 commands.entity(level_entity).insert(Respawn);
             }
+        }
+        for mut detector in detectors.iter_mut() {
+            detector.active_collisions = 0;
         }
     }
 }

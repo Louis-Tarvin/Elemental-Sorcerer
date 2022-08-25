@@ -1,8 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
 use bevy::prelude::{
-    Added, Assets, BuildChildren, Bundle, Commands, Component, Entity, GlobalTransform, Handle,
-    Input, KeyCode, Parent, Query, Res, ResMut, Transform, Vec2, Vec3, With, Without,
+    Added, AssetServer, Assets, BuildChildren, Bundle, Commands, Component, Entity,
+    GlobalTransform, Handle, Image, Input, KeyCode, Parent, Query, Res, ResMut, Transform, Vec2,
+    Vec3, With, Without,
 };
 use bevy_ecs_ldtk::{
     prelude::LayerInstance, GridCoords, LdtkIntCell, LdtkLevel, LevelSelection, Respawn,
@@ -263,6 +264,18 @@ pub fn restart_level(
     }
 }
 
+/// Prevents entity sprites from dissapearing upon reload
+/// See: https://github.com/Trouv/bevy_ecs_ldtk/issues/111
+pub fn prevent_asset_unloading(mut commands: Commands, asset_server: Res<AssetServer>) {
+    #[derive(Component)]
+    struct LdtkImageHolder(Handle<Image>);
+    for asset in ["block", "signpost", "wood_block"].iter() {
+        commands.spawn().insert(LdtkImageHolder(
+            asset_server.load(&format!("sprites/{}.png", asset)),
+        ));
+    }
+}
+
 #[derive(Component, Default)]
 pub struct Spike;
 
@@ -382,6 +395,11 @@ pub fn spawn_spike_collision(
                                     (y + y + 1) as f32 * grid_size as f32 / 2.,
                                     0.,
                                 ))
+                                .insert(
+                                    CollisionLayers::none()
+                                        .with_group(PhysicsLayers::Spikes)
+                                        .with_mask(PhysicsLayers::PlayerBody),
+                                )
                                 .insert(GlobalTransform::default())
                                 .insert(Hurtbox);
                         }

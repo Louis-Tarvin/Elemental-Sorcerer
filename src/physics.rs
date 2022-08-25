@@ -32,7 +32,8 @@ pub enum PhysicsLabel {
 #[derive(PhysicsLayer)]
 pub enum PhysicsLayers {
     Terrain,
-    Player,
+    PlayerBody,
+    PlayerGroundDetector,
     Interactable,
     Enemy,
     Fireball,
@@ -41,6 +42,7 @@ pub enum PhysicsLayers {
     Wood,
     Lava,
     Water,
+    Spikes,
 }
 
 #[derive(Bundle, Default)]
@@ -229,7 +231,7 @@ pub fn add_ground_sensor(mut commands: Commands, query: Query<Entity, Added<Play
                 })
                 .insert(
                     CollisionLayers::none()
-                        .with_group(PhysicsLayers::Player)
+                        .with_group(PhysicsLayers::PlayerGroundDetector)
                         .with_masks([PhysicsLayers::Terrain, PhysicsLayers::Movable]),
                 )
                 .insert(Transform::from_translation(Vec3 {

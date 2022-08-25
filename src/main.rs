@@ -55,7 +55,7 @@ fn main() {
         .register_inspectable::<Player>()
         .insert_resource(ClearColor(Color::rgb(0.133, 0.122, 0.192)))
         .insert_resource(DebugSettings::default())
-        .insert_resource(LevelSelection::Index(9))
+        .insert_resource(LevelSelection::Index(4))
         .insert_resource(LdtkSettings {
             level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
                 load_level_neighbors: true,
@@ -63,6 +63,7 @@ fn main() {
             ..Default::default()
         })
         .insert_resource(Gravity::from(Vec3::new(0.0, -500.0, 0.0)))
+        .add_startup_system(level::prevent_asset_unloading)
         .add_system_set(SystemSet::on_enter(State::MainMenu).with_system(state::main_menu::setup))
         .add_system_set(
             SystemSet::on_update(State::MainMenu).with_system(state::main_menu::button_system),

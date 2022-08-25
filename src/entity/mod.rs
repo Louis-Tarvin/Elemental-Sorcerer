@@ -52,13 +52,14 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                 },
                 rot_constraints: RotationConstraints::lock(),
                 layer: CollisionLayers::none()
-                    .with_group(PhysicsLayers::Player)
+                    .with_group(PhysicsLayers::PlayerBody)
                     .with_masks(&[
                         PhysicsLayers::Terrain,
                         PhysicsLayers::Enemy,
                         PhysicsLayers::Movable,
                         PhysicsLayers::Interactable,
                         PhysicsLayers::Lava,
+                        PhysicsLayers::Spikes,
                     ]),
                 ..Default::default()
             },
@@ -79,6 +80,7 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                 },
                 rb: RigidBody::KinematicVelocityBased,
                 layer: CollisionLayers::all_masks::<PhysicsLayers>()
+                    .without_mask(PhysicsLayers::PlayerGroundDetector)
                     .with_group(PhysicsLayers::Enemy),
                 ..Default::default()
             },
