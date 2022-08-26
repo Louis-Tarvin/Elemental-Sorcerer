@@ -29,7 +29,7 @@
 	"imageExportMode": "None",
 	"pngFilePattern": null,
 	"backupOnSave": true,
-	"backupLimit": 10,
+	"backupLimit": 5,
 	"levelNamePattern": "Level_%idx",
 	"tutorialDesc": null,
 	"flags": [],
@@ -3276,20 +3276,6 @@
 							"height": 16,
 							"defUid": 26,
 							"px": [48,320],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Block",
-							"__grid": [15,20],
-							"__pivot": [0,0],
-							"__tags": [],
-							"__tile": { "tilesetUid": 58, "x": 176, "y": 160, "w": 16, "h": 16 },
-							"__smartColor": "#646464",
-							"iid": "957e08c0-02f0-11ed-b722-d108a9215f05",
-							"width": 16,
-							"height": 16,
-							"defUid": 102,
-							"px": [240,320],
 							"fieldInstances": []
 						}
 					]

@@ -1,4 +1,6 @@
 #![allow(clippy::type_complexity)]
+#![allow(clippy::too_many_arguments)]
+use audio::AudioManager;
 use bevy::{
     prelude::{
         App, AssetServer, Camera2dBundle, ClearColor, Color, Commands,
@@ -12,6 +14,7 @@ use bevy_ecs_ldtk::{
     LevelSpawnBehavior,
 };
 use bevy_inspector_egui::{InspectorPlugin, RegisterInspectable, WorldInspectorPlugin};
+use bevy_kira_audio::{Audio, AudioControl, AudioPlugin};
 use debug::DebugSettings;
 use entity::{
     ability::AbilityBundle,
@@ -28,6 +31,7 @@ use state::State;
 
 mod abilities;
 mod animation;
+mod audio;
 mod camera;
 mod damage;
 mod debug;
@@ -49,6 +53,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(LdtkPlugin)
         .add_plugin(PhysicsPlugin::default())
+        .add_plugin(AudioPlugin)
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(InspectorPlugin::<DebugSettings>::new())
         .register_inspectable::<Controllable>()
@@ -64,6 +69,7 @@ fn main() {
         })
         .insert_resource(Gravity::from(Vec3::new(0.0, -500.0, 0.0)))
         .add_startup_system(level::prevent_asset_unloading)
+        .add_startup_system(audio::init_audio)
         .add_system_set(SystemSet::on_enter(State::MainMenu).with_system(state::main_menu::setup))
         .add_system_set(
             SystemSet::on_update(State::MainMenu).with_system(state::main_menu::button_system),
@@ -119,6 +125,7 @@ fn main() {
                 .with_system(state::ability_menu::trigger_leave)
                 .with_system(state::ability_menu::equiptment_button_system)
                 .with_system(state::ability_menu::element_button_system)
+                .with_system(state::ability_menu::update_button_colours)
                 .with_system(state::ability_menu::update_text),
         )
         .register_ldtk_int_cell::<level::WallBundle>(1)
@@ -134,10 +141,19 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
+    audio_manager: Res<AudioManager>,
+) {
     commands.spawn_bundle(Camera2dBundle::default());
     commands.spawn_bundle(LdtkWorldBundle {
         ldtk_handle: asset_server.load("levels/test.ldtk"),
         ..Default::default()
     });
+    audio
+        .play(audio_manager.bgm.clone())
+        .with_volume(audio_manager.bgm_volume)
+        .looped();
 }

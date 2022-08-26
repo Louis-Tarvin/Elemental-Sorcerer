@@ -3,17 +3,23 @@ name = "bevy-jam-2"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+dev = [
+    "bevy/dynamic",
+]
 
 [dependencies]
-bevy = { version = "0.8.0" }
+bevy = { version = "0.8", default-features = false, features = ["bevy_asset", "bevy_winit", "render", "png", "x11"] }
+bevy_kira_audio = { version = "0.12", default-features = false, features = ["wav"] }
 #  bevy = { version = "0.8.0", features = ["dynamic"] }
 bevy-inspector-egui = "0.12.1"
 bevy_prototype_debug_lines = "0.8"
 bevy_ecs_ldtk = { version = "0.4.0", features = ["atlas"] }
-heron = { version = "4.0.0", features = ["debug-2d"] }
+heron = { version = "4.0.0", features = ["2d"] }
 console_error_panic_hook = "0.1"
 
+[patch.crates-io]
+wgpu = { git = "https://github.com/mockersf/wgpu/", branch = "unconditional-clear-workaround" }
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"

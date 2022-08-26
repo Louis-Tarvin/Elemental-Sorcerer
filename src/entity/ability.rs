@@ -2,7 +2,8 @@ use std::fmt::Display;
 
 use bevy::{
     prelude::{
-        AssetServer, Assets, Bundle, Commands, Component, Entity, EventReader, Handle, Image, Query,
+        AssetServer, Assets, Bundle, Commands, Component, Entity, EventReader, Handle, Image,
+        Query, Res,
     },
     sprite::{SpriteSheetBundle, TextureAtlas},
 };
@@ -11,9 +12,10 @@ use bevy_ecs_ldtk::{
     EntityInstance,
 };
 use bevy_inspector_egui::Inspectable;
+use bevy_kira_audio::{Audio, AudioControl};
 use heron::CollisionEvent;
 
-use crate::{animation::Animated, physics::PhysicsObjectBundle};
+use crate::{animation::Animated, audio::AudioManager, physics::PhysicsObjectBundle};
 
 use super::player::Player;
 
@@ -86,6 +88,8 @@ pub fn check_near(
     ability_orbs: Query<&Ability>,
     mut player: Query<(Entity, &mut Player)>,
     mut collisions: EventReader<CollisionEvent>,
+    audio: Res<Audio>,
+    audio_manager: Res<AudioManager>,
 ) {
     for (player_entity, mut player) in player.iter_mut() {
         for collision in collisions.iter() {
@@ -100,6 +104,7 @@ pub fn check_near(
                             Ability::Water => player.unlocked_water = true,
                         }
                         commands.entity(b.rigid_body_entity()).despawn();
+                        audio.play(audio_manager.collect.clone());
                     }
                 } else if b.rigid_body_entity() == player_entity {
                     if let Ok(ability) = ability_orbs.get(a.rigid_body_entity()) {
@@ -110,6 +115,7 @@ pub fn check_near(
                             Ability::Water => player.unlocked_water = true,
                         }
                         commands.entity(a.rigid_body_entity()).despawn();
+                        audio.play(audio_manager.collect.clone());
                     }
                 }
             }

@@ -9,15 +9,17 @@ use bevy::{
     time::{Time, Timer},
 };
 use bevy_inspector_egui::Inspectable;
+use bevy_kira_audio::{Audio, AudioControl};
 use heron::{
     CollisionEvent, CollisionLayers, CollisionShape, RigidBody, RotationConstraints, Velocity,
 };
 
 use crate::{
     animation::Animated,
+    audio::AudioManager,
     damage::Hurtbox,
     destruction::DestructionTimer,
-    entity::{block::Block, goblin::Enemy, lava::Lava, player::Player, Flamable},
+    entity::{block::Block, lava::Lava, player::Player, Flamable},
     input::Controllable,
     physics::{PhysicsLayers, PhysicsObjectBundle},
 };
@@ -70,6 +72,8 @@ pub fn use_ability(
     )>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    audio: Res<Audio>,
+    audio_manager: Res<AudioManager>,
 ) {
     for (mut controllable, transform, player, sprite) in query.iter_mut() {
         controllable.ability_timer.tick(time.delta());
@@ -122,6 +126,7 @@ pub fn use_ability(
                             .with_group(PhysicsLayers::Fireball)
                             .with_masks([PhysicsLayers::Enemy, PhysicsLayers::Wood]),
                     );
+                audio.play(audio_manager.fireball.clone());
             } else if player.has_infused(Element::Air) {
                 controllable.ability_timer.reset();
                 let vel_x = if sprite.flip_x { -50.0 } else { 50.0 };
@@ -167,6 +172,7 @@ pub fn use_ability(
                             .with_group(PhysicsLayers::Wind)
                             .with_mask(PhysicsLayers::Movable),
                     );
+                audio.play(audio_manager.air.clone());
             } else if player.has_infused(Element::Water) {
                 controllable.ability_timer.reset();
                 let vel_x = if sprite.flip_x { -100.0 } else { 100.0 };
@@ -200,6 +206,7 @@ pub fn use_ability(
                             .with_group(PhysicsLayers::Water)
                             .with_masks([PhysicsLayers::Terrain, PhysicsLayers::Lava]),
                     );
+                audio.play(audio_manager.pew.clone());
             }
         }
     }
@@ -218,6 +225,8 @@ pub fn projectile_collision(
         (With<Lava>, Without<Projectile>),
     >,
     mut collisions: EventReader<CollisionEvent>,
+    audio: Res<Audio>,
+    audio_manager: Res<AudioManager>,
 ) {
     for event in collisions.iter().filter(|e| e.is_started()) {
         let (e1, e2) = event.rigid_body_entities();
@@ -229,6 +238,7 @@ pub fn projectile_collision(
                         // despawn
                         commands.entity(e1).despawn_recursive();
                         commands.entity(e2).despawn_recursive();
+                        audio.play(audio_manager.hurt.clone());
                     }
                 }
                 Projectile::Wind => {
@@ -247,6 +257,7 @@ pub fn projectile_collision(
                         *rb = RigidBody::Static;
                         commands.entity(entity).remove::<Hurtbox>();
                         *layers = layers.with_group(PhysicsLayers::Terrain);
+                        audio.play(audio_manager.steam.clone());
                     }
                 }
             }
@@ -258,6 +269,7 @@ pub fn projectile_collision(
                         // despawn
                         commands.entity(e1).despawn_recursive();
                         commands.entity(e2).despawn_recursive();
+                        audio.play(audio_manager.hurt.clone());
                     }
                 }
                 Projectile::Wind => {
@@ -276,6 +288,7 @@ pub fn projectile_collision(
                         *rb = RigidBody::Static;
                         commands.entity(entity).remove::<Hurtbox>();
                         *layers = layers.with_group(PhysicsLayers::Terrain);
+                        audio.play(audio_manager.steam.clone());
                     }
                 }
             }

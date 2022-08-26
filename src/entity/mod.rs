@@ -153,7 +153,7 @@ impl From<EntityInstance> for ProximityText {
                     "Error"
                 }
             }
-            "Checkpoint" => "Checkpoint saved\nPress <E> to combine",
+            "Checkpoint" => "Checkpoint saved.\nPress <E> to combine",
             _ => "Entity should not have ProximityText component",
         };
         ProximityText(text.into())

@@ -9,6 +9,7 @@ use bevy::{
     time::{Time, Timer},
 };
 
+use bevy_kira_audio::{Audio, AudioControl};
 use heron::{
     CollisionEvent, CollisionLayers, CollisionShape, PhysicMaterial, PhysicsLayer, RigidBody,
     RotationConstraints, Velocity,
@@ -17,6 +18,7 @@ use heron::{
 use crate::{
     abilities::{Element, Equiptment},
     animation::Animated,
+    audio::AudioManager,
     debug::DebugSettings,
     destruction::DestructionTimer,
     entity::player::{AnimationState, Player},
@@ -71,6 +73,8 @@ pub fn handle_controllables(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     debug_settings: Res<DebugSettings>,
+    audio: Res<Audio>,
+    audio_manager: Res<AudioManager>,
 ) {
     for (
         mut velocity,
@@ -115,8 +119,10 @@ pub fn handle_controllables(
                             })
                             .insert(Animated::new(0.05, 0, 10, true))
                             .insert(DestructionTimer(Timer::from_seconds(0.5, false)));
+                        audio.play(audio_manager.explosion.clone());
                     } else {
                         velocity.linear.y = jump_velocity;
+                        audio.play(audio_manager.jump.clone());
                     }
                     // run out the timer
                     detector.coyote_timer.tick(Duration::from_secs(10.0 as u64));
@@ -143,6 +149,7 @@ pub fn handle_controllables(
                         })
                         .insert(Animated::new(0.1, 0, 3, true))
                         .insert(DestructionTimer(Timer::from_seconds(0.3, false)));
+                    audio.play(audio_manager.air.clone());
                 }
 
                 let acceleration = if detector.is_grounded {
@@ -264,6 +271,7 @@ pub fn check_grounded(
                     }
                 }
             }
+            // println!("active_collisions: {}", ground_detector.active_collisions);
             if ground_detector.active_collisions > 0 {
                 ground_detector.is_grounded = true;
                 ground_detector.has_double_jump = true;

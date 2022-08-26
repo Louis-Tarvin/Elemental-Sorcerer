@@ -1,11 +1,10 @@
 use bevy::{
     prelude::{
         Added, AssetServer, BuildChildren, Bundle, Children, Color, Commands, Component, Entity,
-        EventReader, Query, Res, TextBundle, Transform, Vec3, Visibility, With,
+        EventReader, Query, Res, Transform, Vec3, Visibility, With,
     },
     sprite::SpriteBundle,
-    text::{Text, Text2dBundle, TextAlignment, TextSection},
-    ui::Style,
+    text::{Text, Text2dBundle, TextAlignment},
 };
 use bevy_ecs_ldtk::LdtkEntity;
 use heron::CollisionEvent;
@@ -38,8 +37,8 @@ pub fn spawn_text(
     for (entity, sign_text) in signposts.iter() {
         commands.entity(entity).with_children(|builder| {
             let style = bevy::text::TextStyle {
-                font: asset_server.load("fonts/roboto.ttf"),
-                font_size: 20.0,
+                font: asset_server.load("fonts/prstartk.ttf"),
+                font_size: 15.0,
                 color: Color::WHITE,
             };
             builder.spawn_bundle(Text2dBundle {
@@ -51,7 +50,7 @@ pub fn spawn_text(
                         y: 40.0,
                         z: 10.0,
                     },
-                    scale: Vec3::splat(0.7),
+                    scale: Vec3::splat(0.4),
                     ..Default::default()
                 },
                 visibility: Visibility { is_visible: false },
