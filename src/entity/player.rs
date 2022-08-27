@@ -1,8 +1,8 @@
 use bevy::{
-    prelude::{Added, Bundle, Changed, Component, GlobalTransform, Query, Res, Transform, Vec3},
+    prelude::{Added, Bundle, Changed, Component, Query, Res, Transform, Vec3},
     sprite::{SpriteSheetBundle, TextureAtlasSprite},
 };
-use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, LevelSelection, Worldly};
+use bevy_ecs_ldtk::{EntityInstance, GridCoords, LdtkEntity, LevelSelection, Worldly};
 use bevy_inspector_egui::Inspectable;
 
 use crate::{
@@ -96,6 +96,8 @@ pub struct PlayerBundle {
     #[from_entity_instance]
     pub animated: Animated,
     pub animation_state: AnimationState,
+    #[grid_coords]
+    grid_coords: GridCoords,
 }
 
 pub fn animation_state_update(
@@ -133,10 +135,13 @@ pub fn animation_state_update(
 
 pub fn set_spawn(
     level_selection: Res<LevelSelection>,
-    mut query: Query<(&mut Player, &mut Transform, &GlobalTransform), Added<Player>>,
+    mut query: Query<(&mut Player, &mut Transform), Added<Player>>,
 ) {
-    for (mut player, mut transform, global_transform) in query.iter_mut() {
-        player.checkpoint = global_transform.translation();
+    for (mut player, mut transform) in query.iter_mut() {
+        // Note: for some reason player transform is wrong when this system runs so I've hard coded
+        // it for now
+        player.checkpoint.x = 184.0;
+        player.checkpoint.y = 327.0;
         player.checkpoint_level = level_selection.clone();
         transform.translation.z = 5.0;
     }

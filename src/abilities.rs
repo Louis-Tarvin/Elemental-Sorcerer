@@ -2,8 +2,8 @@ use std::fmt::Display;
 
 use bevy::{
     prelude::{
-        AssetServer, Assets, Commands, Component, DespawnRecursiveExt, Entity, EventReader,
-        GlobalTransform, Query, Res, ResMut, Transform, Vec2, Vec3, With, Without,
+        Assets, Commands, Component, DespawnRecursiveExt, Entity, EventReader, GlobalTransform,
+        Query, Res, ResMut, Transform, Vec2, Vec3, With, Without,
     },
     sprite::{Sprite, SpriteBundle, SpriteSheetBundle, TextureAtlas, TextureAtlasSprite},
     time::{Time, Timer},
@@ -16,12 +16,13 @@ use heron::{
 
 use crate::{
     animation::Animated,
-    audio::AudioManager,
+    audio::AudioAssets,
     damage::Hurtbox,
     destruction::DestructionTimer,
     entity::{block::Block, lava::Lava, player::Player, Flamable},
     input::Controllable,
     physics::{PhysicsLayers, PhysicsObjectBundle},
+    state::loading::GameAssets,
 };
 
 #[derive(Inspectable, Component, PartialEq, Eq, Clone, Copy)]
@@ -70,10 +71,10 @@ pub fn use_ability(
         &Player,
         &TextureAtlasSprite,
     )>,
-    asset_server: Res<AssetServer>,
+    game_assets: Res<GameAssets>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     audio: Res<Audio>,
-    audio_manager: Res<AudioManager>,
+    audio_assets: Res<AudioAssets>,
 ) {
     for (mut controllable, transform, player, sprite) in query.iter_mut() {
         controllable.ability_timer.tick(time.delta());
@@ -84,7 +85,7 @@ pub fn use_ability(
             if player.has_infused(Element::Fire) {
                 controllable.ability_timer.reset();
                 let vel_x = if sprite.flip_x { -150.0 } else { 150.0 };
-                let texture_handle = asset_server.load("sprites/fireball.png");
+                let texture_handle = game_assets.fireball.clone();
                 let texture_atlas =
                     TextureAtlas::from_grid(texture_handle, Vec2::new(16.0, 16.0), 4, 1);
                 let texture_atlas_handle = texture_atlases.add(texture_atlas);
@@ -126,11 +127,11 @@ pub fn use_ability(
                             .with_group(PhysicsLayers::Fireball)
                             .with_masks([PhysicsLayers::Enemy, PhysicsLayers::Wood]),
                     );
-                audio.play(audio_manager.fireball.clone());
+                audio.play(audio_assets.fireball.clone());
             } else if player.has_infused(Element::Air) {
                 controllable.ability_timer.reset();
                 let vel_x = if sprite.flip_x { -50.0 } else { 50.0 };
-                let texture_handle = asset_server.load("sprites/wind.png");
+                let texture_handle = game_assets.wind.clone();
                 let texture_atlas =
                     TextureAtlas::from_grid(texture_handle, Vec2::new(16.0, 16.0), 5, 1);
                 let texture_atlas_handle = texture_atlases.add(texture_atlas);
@@ -172,11 +173,11 @@ pub fn use_ability(
                             .with_group(PhysicsLayers::Wind)
                             .with_mask(PhysicsLayers::Movable),
                     );
-                audio.play(audio_manager.air.clone());
+                audio.play(audio_assets.air.clone());
             } else if player.has_infused(Element::Water) {
                 controllable.ability_timer.reset();
                 let vel_x = if sprite.flip_x { -100.0 } else { 100.0 };
-                let texture_handle = asset_server.load("sprites/droplet.png");
+                let texture_handle = game_assets.droplet.clone();
                 let mut projectile_sprite = Sprite::default();
                 if sprite.flip_x {
                     projectile_sprite.flip_x = true;
@@ -206,7 +207,7 @@ pub fn use_ability(
                             .with_group(PhysicsLayers::Water)
                             .with_masks([PhysicsLayers::Terrain, PhysicsLayers::Lava]),
                     );
-                audio.play(audio_manager.pew.clone());
+                audio.play(audio_assets.pew.clone());
             }
         }
     }
@@ -226,7 +227,7 @@ pub fn projectile_collision(
     >,
     mut collisions: EventReader<CollisionEvent>,
     audio: Res<Audio>,
-    audio_manager: Res<AudioManager>,
+    audio_manager: Res<AudioAssets>,
 ) {
     for event in collisions.iter().filter(|e| e.is_started()) {
         let (e1, e2) = event.rigid_body_entities();

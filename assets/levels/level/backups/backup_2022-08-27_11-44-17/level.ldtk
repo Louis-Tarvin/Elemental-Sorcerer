@@ -29,7 +29,7 @@
 	"imageExportMode": "None",
 	"pngFilePattern": null,
 	"backupOnSave": true,
-	"backupLimit": 10,
+	"backupLimit": 5,
 	"levelNamePattern": "Level_%idx",
 	"tutorialDesc": null,
 	"flags": [],
@@ -2856,14 +2856,14 @@
 			"worldDepth": 0,
 			"pxWid": 816,
 			"pxHei": 624,
-			"__bgColor": "#696C90",
-			"bgColor": "#696C90",
+			"__bgColor": "#6D8CC5",
+			"bgColor": "#6D8CC5",
 			"useAutoIdentifier": true,
 			"bgRelPath": null,
 			"bgPos": null,
 			"bgPivotX": 0.5,
 			"bgPivotY": 0.5,
-			"__smartColor": "#ADAEC2",
+			"__smartColor": "#AFC0DF",
 			"__bgPos": null,
 			"externalRelPath": null,
 			"fieldInstances": [],
@@ -3165,10 +3165,10 @@
 							"height": 16,
 							"defUid": 60,
 							"px": [752,480],
-							"fieldInstances": [{ "__identifier": "Text", "__value": "You found the element of fire!\nCombine it with your staff using the pedestal to the right", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
+							"fieldInstances": [{ "__identifier": "Text", "__value": "You found the element of fire!\nCombine it with your staff using\nthe pedestal to the right ->", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
 								"id": "V_String",
 								"params": [
-									"You found the element of fire!\nCombine it with your staff using the pedestal to the right"
+									"You found the element of fire!\nCombine it with your staff using\nthe pedestal to the right ->"
 								]
 							}] }]
 						},
@@ -3215,10 +3215,10 @@
 							"height": 16,
 							"defUid": 60,
 							"px": [688,368],
-							"fieldInstances": [{ "__identifier": "Text", "__value": "Looks like this goblin is blocking the way\nThere might be something nearby you can use to defeat him...", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
+							"fieldInstances": [{ "__identifier": "Text", "__value": "Looks like this goblin is blocking the way.\nThere might be something nearby you can use \nto defeat him...", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
 								"id": "V_String",
 								"params": [
-									"Looks like this goblin is blocking the way\nThere might be something nearby you can use to defeat him..."
+									"Looks like this goblin is blocking the way.\nThere might be something nearby you can use \nto defeat him..."
 								]
 							}] }]
 						},
@@ -3276,20 +3276,6 @@
 							"height": 16,
 							"defUid": 26,
 							"px": [48,320],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Block",
-							"__grid": [15,20],
-							"__pivot": [0,0],
-							"__tags": [],
-							"__tile": { "tilesetUid": 58, "x": 176, "y": 160, "w": 16, "h": 16 },
-							"__smartColor": "#646464",
-							"iid": "957e08c0-02f0-11ed-b722-d108a9215f05",
-							"width": 16,
-							"height": 16,
-							"defUid": 102,
-							"px": [240,320],
 							"fieldInstances": []
 						}
 					]
@@ -4058,7 +4044,7 @@
 			]
 		},
 		{
-			"identifier": "Level_6",
+			"identifier": "Level_5",
 			"iid": "47a03d70-02f0-11ed-9260-7dd08467df92",
 			"uid": 99,
 			"worldX": 944,
@@ -4835,14 +4821,14 @@
 			"worldDepth": 0,
 			"pxWid": 592,
 			"pxHei": 368,
-			"__bgColor": "#696A79",
-			"bgColor": null,
+			"__bgColor": "#6D8CC5",
+			"bgColor": "#6D8CC5",
 			"useAutoIdentifier": true,
 			"bgRelPath": null,
 			"bgPos": null,
 			"bgPivotX": 0.5,
 			"bgPivotY": 0.5,
-			"__smartColor": "#ADADB5",
+			"__smartColor": "#AFC0DF",
 			"__bgPos": null,
 			"externalRelPath": null,
 			"fieldInstances": [],
@@ -5171,6 +5157,23 @@
 							"defUid": 57,
 							"px": [496,208],
 							"fieldInstances": []
+						},
+						{
+							"__identifier": "Signpost",
+							"__grid": [27,20],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 32, "y": 32, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "bbad5690-02f0-11ed-9fbf-81e691834f92",
+							"width": 16,
+							"height": 16,
+							"defUid": 60,
+							"px": [432,320],
+							"fieldInstances": [{ "__identifier": "Text", "__value": "This block looks like it could be moved...", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["This block looks like it could be moved..."]
+							}] }]
 						}
 					]
 				},
@@ -5624,14 +5627,14 @@
 			"worldDepth": 0,
 			"pxWid": 416,
 			"pxHei": 256,
-			"__bgColor": "#696A79",
-			"bgColor": null,
+			"__bgColor": "#46474E",
+			"bgColor": "#46474E",
 			"useAutoIdentifier": true,
 			"bgRelPath": null,
 			"bgPos": null,
 			"bgPivotX": 0.5,
 			"bgPivotY": 0.5,
-			"__smartColor": "#ADADB5",
+			"__smartColor": "#999A9E",
 			"__bgPos": null,
 			"externalRelPath": null,
 			"fieldInstances": [],
@@ -5835,7 +5838,7 @@
 						},
 						{
 							"__identifier": "Ability",
-							"__grid": [21,6],
+							"__grid": [21,7],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": { "tilesetUid": 58, "x": 112, "y": 144, "w": 16, "h": 16 },
@@ -5844,10 +5847,27 @@
 							"width": 16,
 							"height": 16,
 							"defUid": 97,
-							"px": [336,96],
+							"px": [336,112],
 							"fieldInstances": [{ "__identifier": "Ability", "__value": "Water", "__type": "LocalEnum.Ability", "__tile": { "tilesetUid": 58, "x": 112, "y": 144, "w": 16, "h": 16 }, "defUid": 98, "realEditorValues": [{
 								"id": "V_String",
 								"params": ["Water"]
+							}] }]
+						},
+						{
+							"__identifier": "Signpost",
+							"__grid": [23,7],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 32, "y": 32, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "3ea39a60-02f0-11ed-9fbf-3b11a86123fa",
+							"width": 16,
+							"height": 16,
+							"defUid": 60,
+							"px": [368,112],
+							"fieldInstances": [{ "__identifier": "Text", "__value": "You found the element of water!", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["You found the element of water!"]
 							}] }]
 						}
 					]
@@ -6127,14 +6147,14 @@
 			"worldDepth": 0,
 			"pxWid": 704,
 			"pxHei": 352,
-			"__bgColor": "#696A79",
-			"bgColor": null,
+			"__bgColor": "#46474E",
+			"bgColor": "#46474E",
 			"useAutoIdentifier": true,
 			"bgRelPath": null,
 			"bgPos": null,
 			"bgPivotX": 0.5,
 			"bgPivotY": 0.5,
-			"__smartColor": "#ADADB5",
+			"__smartColor": "#999A9E",
 			"__bgPos": null,
 			"externalRelPath": null,
 			"fieldInstances": [],

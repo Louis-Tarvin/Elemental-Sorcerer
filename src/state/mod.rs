@@ -1,4 +1,5 @@
 pub mod ability_menu;
+pub mod loading;
 pub mod main_menu;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]

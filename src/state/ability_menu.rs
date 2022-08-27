@@ -1,6 +1,6 @@
 use bevy::{
     prelude::{
-        AssetServer, BuildChildren, Button, ButtonBundle, Changed, Color, Commands, Component,
+        BuildChildren, Button, ButtonBundle, Changed, Color, Commands, Component,
         DespawnRecursiveExt, Entity, Input, KeyCode, NodeBundle, Query, Res, ResMut, TextBundle,
         With, Without,
     },
@@ -14,13 +14,13 @@ use heron::PhysicsTime;
 
 use crate::{
     abilities::{Element, Equiptment},
-    audio::AudioManager,
+    audio::AudioAssets,
     debug::DebugSettings,
     entity::player::Player,
     input::Controllable,
 };
 
-use super::State;
+use super::{loading::GameAssets, State};
 
 #[derive(Component)]
 pub struct UiRootNode;
@@ -46,7 +46,7 @@ pub fn trigger_enter(
 
 pub fn setup(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    game_assets: Res<GameAssets>,
     player: Query<&Player>,
     debug_settings: Res<DebugSettings>,
 ) {
@@ -92,8 +92,7 @@ pub fn setup(
                         flex_direction: FlexDirection::ColumnReverse,
                         ..Default::default()
                     },
-                    // color: Color::rgba(0.58, 0.345, 0.282, 0.8).into(),
-                    image: asset_server.load("sprites/menu_background.png").into(),
+                    image: game_assets.menu_background.clone().into(),
                     ..Default::default()
                 })
                 .with_children(|parent| {
@@ -114,7 +113,7 @@ pub fn setup(
                             parent.spawn_bundle(TextBundle::from_section(
                                 "Combine equiptment with an element to create an ability",
                                 TextStyle {
-                                    font: asset_server.load("fonts/prstartk.ttf"),
+                                    font: game_assets.pixel_font.clone(),
                                     font_size: 16.0,
                                     color: Color::WHITE,
                                 },
@@ -158,7 +157,7 @@ pub fn setup(
                                     parent.spawn_bundle(TextBundle::from_section(
                                         "Equiptment:",
                                         TextStyle {
-                                            font: asset_server.load("fonts/prstartk.ttf"),
+                                            font: game_assets.pixel_font.clone(),
                                             font_size: 20.0,
                                             color: Color::WHITE,
                                         },
@@ -168,7 +167,7 @@ pub fn setup(
                                         .spawn_bundle(ButtonBundle {
                                             style: button_style.clone(),
                                             color: Color::rgb(0.15, 0.15, 0.15).into(),
-                                            image: asset_server.load("sprites/button.png").into(),
+                                            image: game_assets.button.clone().into(),
                                             ..Default::default()
                                         })
                                         .insert(Equiptment::Staff)
@@ -176,7 +175,7 @@ pub fn setup(
                                             parent.spawn_bundle(TextBundle::from_section(
                                                 "Staff",
                                                 TextStyle {
-                                                    font: asset_server.load("fonts/prstartk.ttf"),
+                                                    font: game_assets.pixel_font.clone(),
                                                     font_size: 20.0,
                                                     color: Color::WHITE,
                                                 },
@@ -189,9 +188,7 @@ pub fn setup(
                                             .spawn_bundle(ButtonBundle {
                                                 style: button_style.clone(),
                                                 color: Color::rgb(0.15, 0.15, 0.15).into(),
-                                                image: asset_server
-                                                    .load("sprites/button.png")
-                                                    .into(),
+                                                image: game_assets.button.clone().into(),
                                                 ..Default::default()
                                             })
                                             .insert(Equiptment::MagicBoots)
@@ -199,8 +196,7 @@ pub fn setup(
                                                 parent.spawn_bundle(TextBundle::from_section(
                                                     "Magic Boots",
                                                     TextStyle {
-                                                        font: asset_server
-                                                            .load("fonts/prstartk.ttf"),
+                                                        font: game_assets.pixel_font.clone(),
                                                         font_size: 17.0,
                                                         color: Color::WHITE,
                                                     },
@@ -232,7 +228,7 @@ pub fn setup(
                                     parent.spawn_bundle(TextBundle::from_section(
                                         "Elements:",
                                         TextStyle {
-                                            font: asset_server.load("fonts/prstartk.ttf"),
+                                            font: game_assets.pixel_font.clone(),
                                             font_size: 20.0,
                                             color: Color::WHITE,
                                         },
@@ -243,9 +239,7 @@ pub fn setup(
                                             .spawn_bundle(ButtonBundle {
                                                 style: button_style.clone(),
                                                 color: Color::rgb(0.15, 0.15, 0.15).into(),
-                                                image: asset_server
-                                                    .load("sprites/button.png")
-                                                    .into(),
+                                                image: game_assets.button.clone().into(),
                                                 ..Default::default()
                                             })
                                             .insert(Element::Fire)
@@ -253,8 +247,7 @@ pub fn setup(
                                                 parent.spawn_bundle(TextBundle::from_section(
                                                     "Fire",
                                                     TextStyle {
-                                                        font: asset_server
-                                                            .load("fonts/prstartk.ttf"),
+                                                        font: game_assets.pixel_font.clone(),
                                                         font_size: 20.0,
                                                         color: Color::WHITE,
                                                     },
@@ -268,9 +261,7 @@ pub fn setup(
                                             .spawn_bundle(ButtonBundle {
                                                 style: button_style.clone(),
                                                 color: Color::rgb(0.15, 0.15, 0.15).into(),
-                                                image: asset_server
-                                                    .load("sprites/button.png")
-                                                    .into(),
+                                                image: game_assets.button.clone().into(),
                                                 ..Default::default()
                                             })
                                             .insert(Element::Air)
@@ -278,8 +269,7 @@ pub fn setup(
                                                 parent.spawn_bundle(TextBundle::from_section(
                                                     "Air",
                                                     TextStyle {
-                                                        font: asset_server
-                                                            .load("fonts/prstartk.ttf"),
+                                                        font: game_assets.pixel_font.clone(),
                                                         font_size: 20.0,
                                                         color: Color::WHITE,
                                                     },
@@ -294,9 +284,7 @@ pub fn setup(
                                             .spawn_bundle(ButtonBundle {
                                                 style: button_style,
                                                 color: Color::rgb(0.15, 0.15, 0.15).into(),
-                                                image: asset_server
-                                                    .load("sprites/button.png")
-                                                    .into(),
+                                                image: game_assets.button.clone().into(),
                                                 ..Default::default()
                                             })
                                             .insert(Element::Water)
@@ -304,8 +292,7 @@ pub fn setup(
                                                 parent.spawn_bundle(TextBundle::from_section(
                                                     "Water",
                                                     TextStyle {
-                                                        font: asset_server
-                                                            .load("fonts/prstartk.ttf"),
+                                                        font: game_assets.pixel_font.clone(),
                                                         font_size: 20.0,
                                                         color: Color::WHITE,
                                                     },
@@ -337,7 +324,7 @@ pub fn setup(
                             parent.spawn_bundle(TextBundle::from_section(
                                 "Combined effect:",
                                 TextStyle {
-                                    font: asset_server.load("fonts/prstartk.ttf"),
+                                    font: game_assets.pixel_font.clone(),
                                     font_size: 20.0,
                                     color: Color::WHITE,
                                 },
@@ -360,7 +347,7 @@ pub fn setup(
                                 .spawn_bundle(TextBundle::from_section(
                                     player.get_combination_description(),
                                     TextStyle {
-                                        font: asset_server.load("fonts/prstartk.ttf"),
+                                        font: game_assets.pixel_font.clone(),
                                         font_size: 20.0,
                                         color: Color::WHITE,
                                     },
@@ -389,7 +376,7 @@ pub fn setup(
                             parent.spawn_bundle(TextBundle::from_section(
                                 "Press <ESC> when finished",
                                 TextStyle {
-                                    font: asset_server.load("fonts/prstartk.ttf"),
+                                    font: game_assets.pixel_font.clone(),
                                     font_size: 15.0,
                                     color: Color::WHITE,
                                 },
@@ -407,19 +394,19 @@ pub fn equiptment_button_system(
     >,
     mut player_query: Query<&mut Player>,
     audio: Res<Audio>,
-    audio_manager: Res<AudioManager>,
+    audio_assets: Res<AudioAssets>,
 ) {
     for (interaction, equiptment, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
                 *color = Color::rgb(0.55, 0.55, 0.55).into();
-                audio.play(audio_manager.blip2.clone());
+                audio.play(audio_assets.blip2.clone());
                 for mut player in player_query.iter_mut() {
                     player.combination.0 = Some(*equiptment);
                 }
             }
             Interaction::Hovered => {
-                audio.play(audio_manager.blip1.clone());
+                audio.play(audio_assets.blip1.clone());
                 *color = Color::rgb(0.35, 0.35, 0.35).into();
             }
             Interaction::None => {
@@ -442,7 +429,7 @@ pub fn element_button_system(
     >,
     mut player_query: Query<&mut Player>,
     audio: Res<Audio>,
-    audio_manager: Res<AudioManager>,
+    audio_manager: Res<AudioAssets>,
 ) {
     for (interaction, element, mut color) in &mut interaction_query {
         match *interaction {

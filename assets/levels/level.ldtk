@@ -29,7 +29,7 @@
 	"imageExportMode": "None",
 	"pngFilePattern": null,
 	"backupOnSave": true,
-	"backupLimit": 10,
+	"backupLimit": 5,
 	"levelNamePattern": "Level_%idx",
 	"tutorialDesc": null,
 	"flags": [],
@@ -2856,14 +2856,14 @@
 			"worldDepth": 0,
 			"pxWid": 816,
 			"pxHei": 624,
-			"__bgColor": "#696C90",
-			"bgColor": "#696C90",
+			"__bgColor": "#6D8CC5",
+			"bgColor": "#6D8CC5",
 			"useAutoIdentifier": true,
 			"bgRelPath": null,
 			"bgPos": null,
 			"bgPivotX": 0.5,
 			"bgPivotY": 0.5,
-			"__smartColor": "#ADAEC2",
+			"__smartColor": "#AFC0DF",
 			"__bgPos": null,
 			"externalRelPath": null,
 			"fieldInstances": [],
@@ -3165,10 +3165,10 @@
 							"height": 16,
 							"defUid": 60,
 							"px": [752,480],
-							"fieldInstances": [{ "__identifier": "Text", "__value": "You found the element of fire!\nCombine it with your staff using the pedestal to the right", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
+							"fieldInstances": [{ "__identifier": "Text", "__value": "You found the element of fire!\nCombine it with your staff using\nthe pedestal to the right ->", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
 								"id": "V_String",
 								"params": [
-									"You found the element of fire!\nCombine it with your staff using the pedestal to the right"
+									"You found the element of fire!\nCombine it with your staff using\nthe pedestal to the right ->"
 								]
 							}] }]
 						},
@@ -3215,10 +3215,10 @@
 							"height": 16,
 							"defUid": 60,
 							"px": [688,368],
-							"fieldInstances": [{ "__identifier": "Text", "__value": "Looks like this goblin is blocking the way\nThere might be something nearby you can use to defeat him...", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
+							"fieldInstances": [{ "__identifier": "Text", "__value": "Looks like this goblin is blocking the way.\nThere might be something nearby you can use \nto defeat him...", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
 								"id": "V_String",
 								"params": [
-									"Looks like this goblin is blocking the way\nThere might be something nearby you can use to defeat him..."
+									"Looks like this goblin is blocking the way.\nThere might be something nearby you can use \nto defeat him..."
 								]
 							}] }]
 						},
@@ -4044,7 +4044,7 @@
 			]
 		},
 		{
-			"identifier": "Level_6",
+			"identifier": "Level_5",
 			"iid": "47a03d70-02f0-11ed-9260-7dd08467df92",
 			"uid": 99,
 			"worldX": 944,
@@ -4813,7 +4813,7 @@
 			"__neighbours": [{ "levelIid": "6646fa30-02f0-11ed-9260-0b531e1a1d4e", "levelUid": 88, "dir": "w" }]
 		},
 		{
-			"identifier": "Level_7",
+			"identifier": "Level_6",
 			"iid": "73f06020-02f0-11ed-a404-e9f310d996d8",
 			"uid": 103,
 			"worldX": 944,
@@ -4821,14 +4821,14 @@
 			"worldDepth": 0,
 			"pxWid": 592,
 			"pxHei": 368,
-			"__bgColor": "#696A79",
-			"bgColor": null,
+			"__bgColor": "#6D8CC5",
+			"bgColor": "#6D8CC5",
 			"useAutoIdentifier": true,
 			"bgRelPath": null,
 			"bgPos": null,
 			"bgPivotX": 0.5,
 			"bgPivotY": 0.5,
-			"__smartColor": "#ADADB5",
+			"__smartColor": "#AFC0DF",
 			"__bgPos": null,
 			"externalRelPath": null,
 			"fieldInstances": [],
@@ -5146,7 +5146,7 @@
 						},
 						{
 							"__identifier": "Checkpoint",
-							"__grid": [31,13],
+							"__grid": [25,20],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": { "tilesetUid": 58, "x": 144, "y": 32, "w": 16, "h": 16 },
@@ -5155,8 +5155,25 @@
 							"width": 16,
 							"height": 16,
 							"defUid": 57,
-							"px": [496,208],
+							"px": [400,320],
 							"fieldInstances": []
+						},
+						{
+							"__identifier": "Signpost",
+							"__grid": [27,20],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 32, "y": 32, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "bbad5690-02f0-11ed-9fbf-81e691834f92",
+							"width": 16,
+							"height": 16,
+							"defUid": 60,
+							"px": [432,320],
+							"fieldInstances": [{ "__identifier": "Text", "__value": "This block looks like it could be moved...", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["This block looks like it could be moved..."]
+							}] }]
 						}
 					]
 				},
@@ -5185,7 +5202,7 @@
 						1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,
 						1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,
 						1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-						1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+						0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,1,1,0,0,0,0,1,1,1,1,1,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -5323,8 +5340,6 @@
 						{ "px": [544,48], "src": [16,16], "f": 0, "t": 13, "d": [50,145] },
 						{ "px": [560,48], "src": [16,16], "f": 0, "t": 13, "d": [50,146] },
 						{ "px": [576,48], "src": [16,16], "f": 0, "t": 13, "d": [50,147] },
-						{ "px": [416,64], "src": [16,16], "f": 0, "t": 13, "d": [50,174] },
-						{ "px": [432,64], "src": [16,16], "f": 0, "t": 13, "d": [50,175] },
 						{ "px": [448,64], "src": [16,16], "f": 0, "t": 13, "d": [50,176] },
 						{ "px": [464,64], "src": [16,16], "f": 0, "t": 13, "d": [50,177] },
 						{ "px": [480,64], "src": [16,16], "f": 0, "t": 13, "d": [50,178] },
@@ -5532,8 +5547,8 @@
 						{ "px": [32,16], "src": [16,32], "f": 0, "t": 25, "d": [40,39] },
 						{ "px": [336,32], "src": [16,32], "f": 0, "t": 25, "d": [40,95] },
 						{ "px": [384,64], "src": [16,32], "f": 0, "t": 25, "d": [40,172] },
-						{ "px": [416,80], "src": [16,32], "f": 0, "t": 25, "d": [40,211] },
-						{ "px": [432,80], "src": [16,32], "f": 0, "t": 25, "d": [40,212] },
+						{ "px": [400,64], "src": [16,32], "f": 0, "t": 25, "d": [40,173] },
+						{ "px": [416,64], "src": [16,32], "f": 0, "t": 25, "d": [40,174] },
 						{ "px": [448,80], "src": [16,32], "f": 0, "t": 25, "d": [40,213] },
 						{ "px": [480,96], "src": [16,32], "f": 0, "t": 25, "d": [40,252] },
 						{ "px": [496,96], "src": [16,32], "f": 0, "t": 25, "d": [40,253] },
@@ -5569,7 +5584,7 @@
 						{ "px": [320,32], "src": [0,32], "f": 0, "t": 24, "d": [38,94] },
 						{ "px": [352,48], "src": [0,32], "f": 0, "t": 24, "d": [38,133] },
 						{ "px": [368,64], "src": [0,32], "f": 0, "t": 24, "d": [38,171] },
-						{ "px": [400,80], "src": [0,32], "f": 0, "t": 24, "d": [38,210] },
+						{ "px": [432,80], "src": [0,32], "f": 0, "t": 24, "d": [38,212] },
 						{ "px": [464,96], "src": [0,32], "f": 0, "t": 24, "d": [38,251] },
 						{ "px": [512,112], "src": [0,32], "f": 0, "t": 24, "d": [38,291] },
 						{ "px": [416,240], "src": [0,32], "f": 0, "t": 24, "d": [38,581] },
@@ -5585,7 +5600,7 @@
 						{ "px": [320,16], "src": [80,0], "f": 0, "t": 5, "d": [36,57] },
 						{ "px": [352,32], "src": [80,0], "f": 0, "t": 5, "d": [36,96] },
 						{ "px": [368,48], "src": [80,0], "f": 0, "t": 5, "d": [36,134] },
-						{ "px": [400,64], "src": [80,0], "f": 0, "t": 5, "d": [36,173] },
+						{ "px": [432,64], "src": [80,0], "f": 0, "t": 5, "d": [36,175] },
 						{ "px": [464,80], "src": [80,0], "f": 0, "t": 5, "d": [36,214] },
 						{ "px": [512,96], "src": [80,0], "f": 0, "t": 5, "d": [36,254] },
 						{ "px": [528,112], "src": [80,0], "f": 0, "t": 5, "d": [36,292] },
@@ -5602,7 +5617,7 @@
 			"__neighbours": [ { "levelIid": "6646fa30-02f0-11ed-9260-0b531e1a1d4e", "levelUid": 88, "dir": "w" }, { "levelIid": "d8762610-02f0-11ed-b722-51a62ded01d6", "levelUid": 104, "dir": "e" } ]
 		},
 		{
-			"identifier": "Level_8",
+			"identifier": "Level_7",
 			"iid": "d8762610-02f0-11ed-b722-51a62ded01d6",
 			"uid": 104,
 			"worldX": 1536,
@@ -5610,14 +5625,14 @@
 			"worldDepth": 0,
 			"pxWid": 416,
 			"pxHei": 256,
-			"__bgColor": "#696A79",
-			"bgColor": null,
+			"__bgColor": "#46474E",
+			"bgColor": "#46474E",
 			"useAutoIdentifier": true,
 			"bgRelPath": null,
 			"bgPos": null,
 			"bgPivotX": 0.5,
 			"bgPivotY": 0.5,
-			"__smartColor": "#ADADB5",
+			"__smartColor": "#999A9E",
 			"__bgPos": null,
 			"externalRelPath": null,
 			"fieldInstances": [],
@@ -5800,9 +5815,9 @@
 							"height": 16,
 							"defUid": 60,
 							"px": [192,192],
-							"fieldInstances": [{ "__identifier": "Text", "__value": "If you ever get stuck you can press <r> to reload from the last checkpoint", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
+							"fieldInstances": [{ "__identifier": "Text", "__value": "If you ever get stuck you can press <r>\nto reload from the last checkpoint", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
 								"id": "V_String",
-								"params": ["If you ever get stuck you can press <r> to reload from the last checkpoint"]
+								"params": ["If you ever get stuck you can press <r>\nto reload from the last checkpoint"]
 							}] }]
 						},
 						{
@@ -5821,7 +5836,7 @@
 						},
 						{
 							"__identifier": "Ability",
-							"__grid": [21,6],
+							"__grid": [21,7],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": { "tilesetUid": 58, "x": 112, "y": 144, "w": 16, "h": 16 },
@@ -5830,10 +5845,27 @@
 							"width": 16,
 							"height": 16,
 							"defUid": 97,
-							"px": [336,96],
+							"px": [336,112],
 							"fieldInstances": [{ "__identifier": "Ability", "__value": "Water", "__type": "LocalEnum.Ability", "__tile": { "tilesetUid": 58, "x": 112, "y": 144, "w": 16, "h": 16 }, "defUid": 98, "realEditorValues": [{
 								"id": "V_String",
 								"params": ["Water"]
+							}] }]
+						},
+						{
+							"__identifier": "Signpost",
+							"__grid": [23,7],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 32, "y": 32, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "3ea39a60-02f0-11ed-9fbf-3b11a86123fa",
+							"width": 16,
+							"height": 16,
+							"defUid": 60,
+							"px": [368,112],
+							"fieldInstances": [{ "__identifier": "Text", "__value": "You found the element of water!", "__type": "String", "__tile": null, "defUid": 61, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["You found the element of water!"]
 							}] }]
 						}
 					]
@@ -6113,14 +6145,14 @@
 			"worldDepth": 0,
 			"pxWid": 704,
 			"pxHei": 352,
-			"__bgColor": "#696A79",
-			"bgColor": null,
+			"__bgColor": "#46474E",
+			"bgColor": "#46474E",
 			"useAutoIdentifier": true,
 			"bgRelPath": null,
 			"bgPos": null,
 			"bgPivotX": 0.5,
 			"bgPivotY": 0.5,
-			"__smartColor": "#ADADB5",
+			"__smartColor": "#999A9E",
 			"__bgPos": null,
 			"externalRelPath": null,
 			"fieldInstances": [],

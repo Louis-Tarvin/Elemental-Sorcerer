@@ -10,7 +10,7 @@ use bevy_ecs_ldtk::{LdtkEntity, LevelSelection};
 use bevy_kira_audio::{Audio, AudioControl};
 use heron::CollisionEvent;
 
-use crate::{animation::Animated, audio::AudioManager, physics::PhysicsObjectBundle};
+use crate::{animation::Animated, audio::AudioAssets, physics::PhysicsObjectBundle};
 
 use super::{player::Player, ProximityText};
 
@@ -39,7 +39,7 @@ pub fn check_near(
     mut collisions: EventReader<CollisionEvent>,
     level_selection: Res<LevelSelection>,
     audio: Res<Audio>,
-    audio_manager: Res<AudioManager>,
+    audio_assets: Res<AudioAssets>,
 ) {
     for (player_entity, mut player) in player.iter_mut() {
         for collision in collisions.iter() {
@@ -58,7 +58,7 @@ pub fn check_near(
                             player.checkpoint = transform.translation();
                             player.checkpoint_level = level_selection.clone();
                             player.near_checkpoint = true;
-                            audio.play(audio_manager.ping.clone());
+                            audio.play(audio_assets.ping.clone());
                         }
                     } else if b.rigid_body_entity() == player_entity {
                         if let Ok((transform, children)) = checkpoints.get(a.rigid_body_entity()) {
@@ -72,7 +72,7 @@ pub fn check_near(
                             player.checkpoint = transform.translation();
                             player.checkpoint_level = level_selection.clone();
                             player.near_checkpoint = true;
-                            audio.play(audio_manager.ping.clone());
+                            audio.play(audio_assets.ping.clone());
                         }
                     }
                 }

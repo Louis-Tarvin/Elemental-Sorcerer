@@ -15,7 +15,7 @@ use bevy_inspector_egui::Inspectable;
 use bevy_kira_audio::{Audio, AudioControl};
 use heron::CollisionEvent;
 
-use crate::{animation::Animated, audio::AudioManager, physics::PhysicsObjectBundle};
+use crate::{animation::Animated, audio::AudioAssets, physics::PhysicsObjectBundle};
 
 use super::player::Player;
 
@@ -89,7 +89,7 @@ pub fn check_near(
     mut player: Query<(Entity, &mut Player)>,
     mut collisions: EventReader<CollisionEvent>,
     audio: Res<Audio>,
-    audio_manager: Res<AudioManager>,
+    audio_assets: Res<AudioAssets>,
 ) {
     for (player_entity, mut player) in player.iter_mut() {
         for collision in collisions.iter() {
@@ -104,7 +104,7 @@ pub fn check_near(
                             Ability::Water => player.unlocked_water = true,
                         }
                         commands.entity(b.rigid_body_entity()).despawn();
-                        audio.play(audio_manager.collect.clone());
+                        audio.play(audio_assets.collect.clone());
                     }
                 } else if b.rigid_body_entity() == player_entity {
                     if let Ok(ability) = ability_orbs.get(a.rigid_body_entity()) {
@@ -115,7 +115,7 @@ pub fn check_near(
                             Ability::Water => player.unlocked_water = true,
                         }
                         commands.entity(a.rigid_body_entity()).despawn();
-                        audio.play(audio_manager.collect.clone());
+                        audio.play(audio_assets.collect.clone());
                     }
                 }
             }

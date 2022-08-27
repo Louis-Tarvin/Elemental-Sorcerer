@@ -2,8 +2,8 @@ use std::time::Duration;
 
 use bevy::{
     prelude::{
-        Added, AssetServer, Assets, BuildChildren, Bundle, Children, Commands, Component, Entity,
-        EventReader, GlobalTransform, Query, Res, ResMut, SystemLabel, Transform, Vec2, Vec3,
+        Added, Assets, BuildChildren, Bundle, Children, Commands, Component, Entity, EventReader,
+        GlobalTransform, Query, Res, ResMut, SystemLabel, Transform, Vec2, Vec3,
     },
     sprite::{SpriteSheetBundle, TextureAtlas, TextureAtlasSprite},
     time::{Time, Timer},
@@ -18,11 +18,12 @@ use heron::{
 use crate::{
     abilities::{Element, Equiptment},
     animation::Animated,
-    audio::AudioManager,
+    audio::AudioAssets,
     debug::DebugSettings,
     destruction::DestructionTimer,
     entity::player::{AnimationState, Player},
     input::Controllable,
+    state::loading::GameAssets,
 };
 
 #[derive(SystemLabel)]
@@ -70,11 +71,11 @@ pub fn handle_controllables(
         &Children,
     )>,
     mut ground_detectors: Query<&mut GroundDetector>,
-    asset_server: Res<AssetServer>,
+    game_assets: Res<GameAssets>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     debug_settings: Res<DebugSettings>,
     audio: Res<Audio>,
-    audio_manager: Res<AudioManager>,
+    audio_assets: Res<AudioAssets>,
 ) {
     for (
         mut velocity,
@@ -104,7 +105,7 @@ pub fn handle_controllables(
                         && player.has_infused(Element::Fire)
                     {
                         velocity.linear.y = jump_velocity * 1.3;
-                        let texture_handle = asset_server.load("sprites/explosion.png");
+                        let texture_handle = game_assets.explosion.clone();
                         let texture_atlas =
                             TextureAtlas::from_grid(texture_handle, Vec2::new(32.0, 32.0), 10, 1);
                         let texture_atlas_handle = texture_atlases.add(texture_atlas);
@@ -119,10 +120,10 @@ pub fn handle_controllables(
                             })
                             .insert(Animated::new(0.05, 0, 10, true))
                             .insert(DestructionTimer(Timer::from_seconds(0.5, false)));
-                        audio.play(audio_manager.explosion.clone());
+                        audio.play(audio_assets.explosion.clone());
                     } else {
                         velocity.linear.y = jump_velocity;
-                        audio.play(audio_manager.jump.clone());
+                        audio.play(audio_assets.jump.clone());
                     }
                     // run out the timer
                     detector.coyote_timer.tick(Duration::from_secs(10.0 as u64));
@@ -134,7 +135,7 @@ pub fn handle_controllables(
                     // Double jump
                     velocity.linear.y = jump_velocity;
                     detector.has_double_jump = false;
-                    let texture_handle = asset_server.load("sprites/poof.png");
+                    let texture_handle = game_assets.poof.clone();
                     let texture_atlas =
                         TextureAtlas::from_grid(texture_handle, Vec2::new(16.0, 4.0), 3, 1);
                     let texture_atlas_handle = texture_atlases.add(texture_atlas);
@@ -149,7 +150,7 @@ pub fn handle_controllables(
                         })
                         .insert(Animated::new(0.1, 0, 3, true))
                         .insert(DestructionTimer(Timer::from_seconds(0.3, false)));
-                    audio.play(audio_manager.air.clone());
+                    audio.play(audio_assets.air.clone());
                 }
 
                 let acceleration = if detector.is_grounded {

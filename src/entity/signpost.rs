@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        Added, AssetServer, BuildChildren, Bundle, Children, Color, Commands, Component, Entity,
-        EventReader, Query, Res, Transform, Vec3, Visibility, With,
+        Added, BuildChildren, Bundle, Children, Color, Commands, Component, Entity, EventReader,
+        Query, Res, Transform, Vec3, Visibility, With,
     },
     sprite::SpriteBundle,
     text::{Text, Text2dBundle, TextAlignment},
@@ -9,7 +9,7 @@ use bevy::{
 use bevy_ecs_ldtk::LdtkEntity;
 use heron::CollisionEvent;
 
-use crate::physics::PhysicsObjectBundle;
+use crate::{physics::PhysicsObjectBundle, state::loading::GameAssets};
 
 use super::{player::Player, ProximityText};
 
@@ -30,14 +30,14 @@ pub struct SignpostBundle {
 }
 
 pub fn spawn_text(
-    asset_server: Res<AssetServer>,
+    game_assets: Res<GameAssets>,
     mut commands: Commands,
     signposts: Query<(Entity, &ProximityText), Added<ProximityText>>,
 ) {
     for (entity, sign_text) in signposts.iter() {
         commands.entity(entity).with_children(|builder| {
             let style = bevy::text::TextStyle {
-                font: asset_server.load("fonts/prstartk.ttf"),
+                font: game_assets.pixel_font.clone(),
                 font_size: 15.0,
                 color: Color::WHITE,
             };

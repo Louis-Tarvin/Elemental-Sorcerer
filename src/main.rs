@@ -1,14 +1,16 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::too_many_arguments)]
-use audio::AudioManager;
+use audio::AudioAssets;
 use bevy::{
     prelude::{
-        App, AssetServer, Camera2dBundle, ClearColor, Color, Commands,
-        ParallelSystemDescriptorCoercion, Res, SystemSet, Vec3,
+        App, Camera2dBundle, ClearColor, Color, Commands, ParallelSystemDescriptorCoercion, Res,
+        SystemSet, Vec3,
     },
     render::texture::ImageSettings,
+    window::WindowDescriptor,
     DefaultPlugins,
 };
+use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
 use bevy_ecs_ldtk::{
     prelude::RegisterLdtkObjects, LdtkPlugin, LdtkSettings, LdtkWorldBundle, LevelSelection,
     LevelSpawnBehavior,
@@ -27,7 +29,7 @@ use entity::{
 };
 use heron::{Gravity, PhysicsPlugin, PhysicsSystem};
 use input::Controllable;
-use state::State;
+use state::{loading::GameAssets, State};
 
 mod abilities;
 mod animation;
@@ -49,7 +51,7 @@ fn main() {
 
     App::new()
         .insert_resource(ImageSettings::default_nearest())
-        .add_state(State::InGame)
+        .add_state(State::Loading)
         .add_plugins(DefaultPlugins)
         .add_plugin(LdtkPlugin)
         .add_plugin(PhysicsPlugin::default())
@@ -59,6 +61,13 @@ fn main() {
         .register_inspectable::<Controllable>()
         .register_inspectable::<Player>()
         .insert_resource(ClearColor(Color::rgb(0.133, 0.122, 0.192)))
+        .insert_resource(WindowDescriptor {
+            width: 800.,
+            height: 600.,
+            title: "Bevy game".to_string(), // ToDo
+            canvas: Some("#bevy".to_owned()),
+            ..Default::default()
+        })
         .insert_resource(DebugSettings::default())
         .insert_resource(LevelSelection::Index(4))
         .insert_resource(LdtkSettings {
@@ -69,7 +78,12 @@ fn main() {
         })
         .insert_resource(Gravity::from(Vec3::new(0.0, -500.0, 0.0)))
         .add_startup_system(level::prevent_asset_unloading)
-        .add_startup_system(audio::init_audio)
+        .add_loading_state(
+            LoadingState::new(State::Loading)
+                .continue_to_state(State::InGame)
+                .with_collection::<GameAssets>()
+                .with_collection::<AudioAssets>(),
+        )
         .add_system_set(SystemSet::on_enter(State::MainMenu).with_system(state::main_menu::setup))
         .add_system_set(
             SystemSet::on_update(State::MainMenu).with_system(state::main_menu::button_system),
@@ -83,7 +97,7 @@ fn main() {
                 .with_system(level::update_level_selection)
                 .with_system(level::restart_level)
                 .with_system(animation::system)
-                .with_system(camera::follow)
+                .with_system(camera::follow.after(physics::PhysicsLabel::HandleControllables))
                 .with_system(camera::set_zoom)
                 .with_system(destruction::destroy)
                 .with_system(physics::add_ground_sensor)
@@ -143,17 +157,17 @@ fn main() {
 
 fn setup(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    game_assets: Res<GameAssets>,
     audio: Res<Audio>,
-    audio_manager: Res<AudioManager>,
+    audio_assets: Res<AudioAssets>,
 ) {
     commands.spawn_bundle(Camera2dBundle::default());
     commands.spawn_bundle(LdtkWorldBundle {
-        ldtk_handle: asset_server.load("levels/test.ldtk"),
+        ldtk_handle: game_assets.level.clone(),
         ..Default::default()
     });
     audio
-        .play(audio_manager.bgm.clone())
-        .with_volume(audio_manager.bgm_volume)
+        .play(audio_assets.bgm.clone())
+        .with_volume(0.4)
         .looped();
 }
