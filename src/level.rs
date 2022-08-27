@@ -1,14 +1,14 @@
 use std::collections::{HashMap, HashSet};
 
 use bevy::prelude::{
-    Added, AssetServer, Assets, BuildChildren, Bundle, Commands, Component, Entity,
+    Added, AssetServer, Assets, BuildChildren, Bundle, Commands, Component, Entity, EventReader,
     GlobalTransform, Handle, Image, Input, KeyCode, Parent, Query, Res, ResMut, Transform, Vec2,
     Vec3, With, Without,
 };
 use bevy_ecs_ldtk::{
-    prelude::LayerInstance, GridCoords, LdtkIntCell, LdtkLevel, LevelSelection, Respawn,
+    prelude::LayerInstance, GridCoords, LdtkIntCell, LdtkLevel, LevelEvent, LevelSelection, Respawn,
 };
-use heron::{CollisionLayers, CollisionShape, PhysicMaterial, RigidBody};
+use heron::{CollisionLayers, CollisionShape, PhysicMaterial, PhysicsTime, RigidBody};
 
 use crate::{
     damage::Hurtbox,
@@ -253,6 +253,7 @@ pub fn restart_level(
     if input.just_pressed(KeyCode::R) {
         for (mut transform, player) in player_query.iter_mut() {
             transform.translation = player.checkpoint;
+            transform.translation.z = 5.0;
             *level_selection = player.checkpoint_level.clone();
         }
         for level_entity in level_query.iter() {
@@ -269,7 +270,7 @@ pub fn restart_level(
 pub fn prevent_asset_unloading(mut commands: Commands, asset_server: Res<AssetServer>) {
     #[derive(Component)]
     struct LdtkImageHolder(Handle<Image>);
-    for asset in ["block", "signpost", "wood_block"].iter() {
+    for asset in ["block", "signpost", "wood_block", "trophy"].iter() {
         commands.spawn().insert(LdtkImageHolder(
             asset_server.load(&format!("sprites/{}.png", asset)),
         ));
@@ -407,5 +408,19 @@ pub fn spawn_spike_collision(
                 });
             }
         });
+    }
+}
+
+/// This function was copied from the example in bevy_ecs_ldtk. All credit goes to the author
+pub fn pause_physics_during_load(
+    mut level_events: EventReader<LevelEvent>,
+    mut physics_time: ResMut<PhysicsTime>,
+) {
+    for event in level_events.iter() {
+        match event {
+            LevelEvent::SpawnTriggered(_) => physics_time.set_scale(0.),
+            LevelEvent::Transformed(_) => physics_time.set_scale(1.),
+            _ => (),
+        }
     }
 }

@@ -2,8 +2,8 @@ use std::fmt::Display;
 
 use bevy::{
     prelude::{
-        AssetServer, Assets, Bundle, Commands, Component, Entity, EventReader, Handle, Image,
-        Query, Res,
+        Added, AssetServer, Assets, Bundle, Commands, Component, Entity, EventReader, Handle,
+        Image, Query, Res,
     },
     sprite::{SpriteSheetBundle, TextureAtlas},
 };
@@ -116,6 +116,39 @@ pub fn check_near(
                         }
                         commands.entity(a.rigid_body_entity()).despawn();
                         audio.play(audio_assets.collect.clone());
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn dont_spawn_if_collected(
+    mut commands: Commands,
+    query: Query<(Entity, &Ability), Added<Ability>>,
+    player: Query<&Player>,
+) {
+    for player in player.iter() {
+        for (entity, ability) in query.iter() {
+            match ability {
+                Ability::Fire => {
+                    if player.unlocked_fire {
+                        commands.entity(entity).despawn();
+                    }
+                }
+                Ability::Air => {
+                    if player.unlocked_air {
+                        commands.entity(entity).despawn();
+                    }
+                }
+                Ability::Water => {
+                    if player.unlocked_water {
+                        commands.entity(entity).despawn();
+                    }
+                }
+                Ability::MagicBoots => {
+                    if player.unlocked_boots {
+                        commands.entity(entity).despawn();
                     }
                 }
             }

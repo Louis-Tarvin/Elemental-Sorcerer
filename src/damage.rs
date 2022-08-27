@@ -91,6 +91,7 @@ pub fn respawn(
                 .remove::<Killed>()
                 .insert(Controllable::new());
             transform.translation = player.checkpoint;
+            transform.translation.z = 5.0;
             *level_selection = player.checkpoint_level.clone();
             for level_entity in level_query.iter() {
                 commands.entity(level_entity).insert(Respawn);

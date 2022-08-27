@@ -140,8 +140,8 @@ pub fn set_spawn(
     for (mut player, mut transform) in query.iter_mut() {
         // Note: for some reason player transform is wrong when this system runs so I've hard coded
         // it for now
-        player.checkpoint.x = 184.0;
-        player.checkpoint.y = 327.0;
+        player.checkpoint.x = -536.0;
+        player.checkpoint.y = 664.0;
         player.checkpoint_level = level_selection.clone();
         transform.translation.z = 5.0;
     }

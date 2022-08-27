@@ -3,7 +3,7 @@ use std::fmt::Display;
 use bevy::{
     prelude::{
         Assets, Commands, Component, DespawnRecursiveExt, Entity, EventReader, GlobalTransform,
-        Query, Res, ResMut, Transform, Vec2, Vec3, With, Without,
+        Mut, Query, Res, ResMut, Transform, Vec2, Vec3, With, Without,
     },
     sprite::{Sprite, SpriteBundle, SpriteSheetBundle, TextureAtlas, TextureAtlasSprite},
     time::{Time, Timer},
@@ -229,69 +229,90 @@ pub fn projectile_collision(
     audio: Res<Audio>,
     audio_manager: Res<AudioAssets>,
 ) {
+    // Should probably split this into multiple systems
+
     for event in collisions.iter().filter(|e| e.is_started()) {
         let (e1, e2) = event.rigid_body_entities();
-        if let Ok((projectile, projectile_velocity, mut layers)) = projectiles.get_mut(e1) {
+        if let Ok((projectile, projectile_velocity, layers)) = projectiles.get_mut(e1) {
             // entity 1 is projectile
-            match projectile {
-                Projectile::Fireball => {
-                    if flamables.get(e2).is_ok() {
-                        // despawn
-                        commands.entity(e1).despawn_recursive();
-                        commands.entity(e2).despawn_recursive();
-                        audio.play(audio_manager.hurt.clone());
-                    }
-                }
-                Projectile::Wind => {
-                    if let Ok(mut velocity) = blocks.get_mut(e2) {
-                        // push
-                        velocity.linear = projectile_velocity.linear * 4.0;
-                        *layers = layers.without_mask(PhysicsLayers::Movable);
-                    }
-                }
-                Projectile::Water => {
-                    commands.entity(e1).despawn();
-                    if let Ok((entity, mut animation, mut rb, mut layers)) = lava.get_mut(e2) {
-                        // turn lava to stone
-                        animation.start = 8;
-                        animation.end = 9;
-                        *rb = RigidBody::Static;
-                        commands.entity(entity).remove::<Hurtbox>();
-                        *layers = layers.with_group(PhysicsLayers::Terrain);
-                        audio.play(audio_manager.steam.clone());
-                    }
-                }
-            }
-        } else if let Ok((projectile, projectile_velocity, mut layers)) = projectiles.get_mut(e2) {
+            resolve_projectile_collision(
+                &mut commands,
+                projectile,
+                projectile_velocity,
+                layers,
+                e1,
+                e2,
+                &flamables,
+                &mut blocks,
+                &mut lava,
+                &audio,
+                &audio_manager,
+            );
+        } else if let Ok((projectile, projectile_velocity, layers)) = projectiles.get_mut(e2) {
             // entity 2 is projectile
-            match projectile {
-                Projectile::Fireball => {
-                    if flamables.get(e1).is_ok() {
-                        // despawn
-                        commands.entity(e1).despawn_recursive();
-                        commands.entity(e2).despawn_recursive();
-                        audio.play(audio_manager.hurt.clone());
-                    }
+            resolve_projectile_collision(
+                &mut commands,
+                projectile,
+                projectile_velocity,
+                layers,
+                e2,
+                e1,
+                &flamables,
+                &mut blocks,
+                &mut lava,
+                &audio,
+                &audio_manager,
+            );
+        }
+    }
+}
+
+fn resolve_projectile_collision(
+    commands: &mut Commands,
+    projectile: &Projectile,
+    projectile_velocity: &Velocity,
+    mut layers: Mut<CollisionLayers>,
+    projectile_entity: Entity,
+    other: Entity,
+    flamables: &Query<(Entity, &Flamable)>,
+    blocks: &mut Query<&mut Velocity, (With<Block>, Without<Projectile>)>,
+    lava: &mut Query<
+        (Entity, &mut Animated, &mut RigidBody, &mut CollisionLayers),
+        (With<Lava>, Without<Projectile>),
+    >,
+    audio: &Res<Audio>,
+    audio_manager: &Res<AudioAssets>,
+) {
+    match projectile {
+        Projectile::Fireball => {
+            if flamables.get(other).is_ok() {
+                // despawn
+                commands.entity(other).despawn_recursive();
+                commands.entity(projectile_entity).despawn_recursive();
+                audio.play(audio_manager.hurt.clone());
+            }
+        }
+        Projectile::Wind => {
+            if let Ok(mut velocity) = blocks.get_mut(other) {
+                // push
+                velocity.linear = projectile_velocity.linear;
+                *layers = layers.without_mask(PhysicsLayers::Movable);
+            }
+        }
+        Projectile::Water => {
+            commands.entity(projectile_entity).despawn();
+            if let Ok((entity, mut animation, mut rb, mut layers)) = lava.get_mut(other) {
+                // turn lava to stone
+                animation.start = 8;
+                animation.end = 9;
+                if *rb != RigidBody::Static {
+                    *rb = RigidBody::Static;
                 }
-                Projectile::Wind => {
-                    if let Ok(mut velocity) = blocks.get_mut(e1) {
-                        // push
-                        velocity.linear = projectile_velocity.linear;
-                        *layers = layers.without_mask(PhysicsLayers::Movable);
-                    }
+                commands.entity(entity).remove::<Hurtbox>();
+                if !layers.contains_group(PhysicsLayers::Terrain) {
+                    *layers = layers.with_group(PhysicsLayers::Terrain);
                 }
-                Projectile::Water => {
-                    commands.entity(e2).despawn();
-                    if let Ok((entity, mut animation, mut rb, mut layers)) = lava.get_mut(e1) {
-                        // turn lava to stone
-                        animation.start = 8;
-                        animation.end = 9;
-                        *rb = RigidBody::Static;
-                        commands.entity(entity).remove::<Hurtbox>();
-                        *layers = layers.with_group(PhysicsLayers::Terrain);
-                        audio.play(audio_manager.steam.clone());
-                    }
-                }
+                audio.play(audio_manager.steam.clone());
             }
         }
     }

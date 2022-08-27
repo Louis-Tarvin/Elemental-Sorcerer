@@ -26,6 +26,7 @@ use entity::{
     lava::LavaBundle,
     player::{Player, PlayerBundle},
     signpost::SignpostBundle,
+    trophy::TrophyBundle,
 };
 use heron::{Gravity, PhysicsPlugin, PhysicsSystem};
 use input::Controllable;
@@ -69,7 +70,7 @@ fn main() {
             ..Default::default()
         })
         .insert_resource(DebugSettings::default())
-        .insert_resource(LevelSelection::Index(4))
+        .insert_resource(LevelSelection::Index(1))
         .insert_resource(LdtkSettings {
             level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
                 load_level_neighbors: true,
@@ -95,6 +96,7 @@ fn main() {
                 .with_system(level::spawn_wall_collision)
                 .with_system(level::spawn_spike_collision)
                 .with_system(level::update_level_selection)
+                .with_system(level::pause_physics_during_load)
                 .with_system(level::restart_level)
                 .with_system(animation::system)
                 .with_system(camera::follow.after(physics::PhysicsLabel::HandleControllables))
@@ -127,9 +129,11 @@ fn main() {
                 .with_system(entity::goblin::animation_state_update)
                 .with_system(entity::goblin::face_direction)
                 .with_system(entity::ability::check_near)
+                .with_system(entity::ability::dont_spawn_if_collected)
                 .with_system(entity::signpost::spawn_text)
                 .with_system(entity::signpost::check_near)
-                .with_system(entity::checkpoint::check_near),
+                .with_system(entity::checkpoint::check_near)
+                .with_system(entity::trophy::check_near),
         )
         .add_system_set(
             SystemSet::on_enter(State::AbilityMenu).with_system(state::ability_menu::setup),
@@ -152,6 +156,7 @@ fn main() {
         .register_ldtk_entity::<BlockBundle>("Block")
         .register_ldtk_entity::<WoodBlockBundle>("WoodBlock")
         .register_ldtk_entity::<LavaBundle>("Lava")
+        .register_ldtk_entity::<TrophyBundle>("Trophy")
         .run();
 }
 

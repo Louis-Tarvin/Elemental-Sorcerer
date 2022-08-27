@@ -15,6 +15,7 @@ pub mod goblin;
 pub mod lava;
 pub mod player;
 pub mod signpost;
+pub mod trophy;
 
 #[derive(Component, Default)]
 pub struct Flamable;
@@ -63,7 +64,7 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                     ]),
                 ..Default::default()
             },
-            "Signpost" | "Checkpoint" | "Ability" => PhysicsObjectBundle {
+            "Signpost" | "Checkpoint" | "Ability" | "Trophy" => PhysicsObjectBundle {
                 collider: CollisionShape::Cuboid {
                     half_extends: Vec3::splat(10.0),
                     border_radius: None,
@@ -154,6 +155,7 @@ impl From<EntityInstance> for ProximityText {
                 }
             }
             "Checkpoint" => "Checkpoint saved.\nPress <E> to combine",
+            "Trophy" => "You Win!\nThanks for playing.\nI'd love to hear your feedback.",
             _ => "Entity should not have ProximityText component",
         };
         ProximityText(text.into())
