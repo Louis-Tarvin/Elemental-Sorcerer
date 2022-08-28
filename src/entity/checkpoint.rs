@@ -4,7 +4,6 @@ use bevy::{
         With,
     },
     sprite::SpriteSheetBundle,
-    text::Text,
 };
 use bevy_ecs_ldtk::{LdtkEntity, LevelSelection};
 use bevy_kira_audio::{Audio, AudioControl};
@@ -12,7 +11,7 @@ use heron::CollisionEvent;
 
 use crate::{animation::Animated, audio::AudioAssets, physics::PhysicsObjectBundle};
 
-use super::{player::Player, ProximityText};
+use super::{player::Player, signpost::TextBox, ProximityText};
 
 #[derive(Component, Default)]
 pub struct Checkpoint;
@@ -35,7 +34,7 @@ pub struct CheckpointBundle {
 pub fn check_near(
     checkpoints: Query<(&GlobalTransform, &Children), (With<ProximityText>, With<Checkpoint>)>,
     mut player: Query<(Entity, &mut Player)>,
-    mut text: Query<&mut Visibility, With<Text>>,
+    mut text: Query<&mut Visibility, With<TextBox>>,
     mut collisions: EventReader<CollisionEvent>,
     level_selection: Res<LevelSelection>,
     audio: Res<Audio>,
@@ -43,7 +42,6 @@ pub fn check_near(
 ) {
     for (player_entity, mut player) in player.iter_mut() {
         for collision in collisions.iter() {
-            // for (entity, children) in signposts.iter_mut() {
             match collision {
                 CollisionEvent::Started(a, b) => {
                     if a.rigid_body_entity() == player_entity {

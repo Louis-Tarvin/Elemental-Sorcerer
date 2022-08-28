@@ -4,7 +4,7 @@ use audio::AudioAssets;
 use bevy::{
     prelude::{
         App, Camera2dBundle, ClearColor, Color, Commands, ParallelSystemDescriptorCoercion, Res,
-        SystemSet, Vec3,
+        SystemSet, Transform, Vec3,
     },
     render::texture::ImageSettings,
     window::WindowDescriptor,
@@ -27,6 +27,7 @@ use entity::{
     player::{Player, PlayerBundle},
     signpost::SignpostBundle,
     trophy::TrophyBundle,
+    water::WaterBundle,
 };
 use heron::{Gravity, PhysicsPlugin, PhysicsSystem};
 use input::Controllable;
@@ -65,7 +66,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 800.,
             height: 600.,
-            title: "Bevy game".to_string(), // ToDo
+            title: "Elemental Sorcerer".to_string(),
             canvas: Some("#bevy".to_owned()),
             ..Default::default()
         })
@@ -99,7 +100,6 @@ fn main() {
                 .with_system(level::pause_physics_during_load)
                 .with_system(level::restart_level)
                 .with_system(animation::system)
-                .with_system(camera::follow.after(physics::PhysicsLabel::HandleControllables))
                 .with_system(camera::set_zoom)
                 .with_system(destruction::destroy)
                 .with_system(physics::add_ground_sensor)
@@ -132,6 +132,8 @@ fn main() {
                 .with_system(entity::ability::dont_spawn_if_collected)
                 .with_system(entity::signpost::spawn_text)
                 .with_system(entity::signpost::check_near)
+                .with_system(entity::lava::check_collision)
+                .with_system(entity::water::check_collision)
                 .with_system(entity::checkpoint::check_near)
                 .with_system(entity::trophy::check_near),
         )
@@ -141,7 +143,7 @@ fn main() {
         .add_system_set(
             SystemSet::on_update(State::AbilityMenu)
                 .with_system(state::ability_menu::trigger_leave)
-                .with_system(state::ability_menu::equiptment_button_system)
+                .with_system(state::ability_menu::equipment_button_system)
                 .with_system(state::ability_menu::element_button_system)
                 .with_system(state::ability_menu::update_button_colours)
                 .with_system(state::ability_menu::update_text),
@@ -156,6 +158,7 @@ fn main() {
         .register_ldtk_entity::<BlockBundle>("Block")
         .register_ldtk_entity::<WoodBlockBundle>("WoodBlock")
         .register_ldtk_entity::<LavaBundle>("Lava")
+        .register_ldtk_entity::<WaterBundle>("Water")
         .register_ldtk_entity::<TrophyBundle>("Trophy")
         .run();
 }
@@ -166,13 +169,16 @@ fn setup(
     audio: Res<Audio>,
     audio_assets: Res<AudioAssets>,
 ) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn_bundle(Camera2dBundle {
+        transform: Transform::from_xyz(0.0, 0.0, 900.0),
+        ..Default::default()
+    });
     commands.spawn_bundle(LdtkWorldBundle {
         ldtk_handle: game_assets.level.clone(),
         ..Default::default()
     });
     audio
         .play(audio_assets.bgm.clone())
-        .with_volume(0.4)
+        .with_volume(0.1)
         .looped();
 }

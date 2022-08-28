@@ -1,12 +1,15 @@
 use bevy::{
-    prelude::{Added, Bundle, Changed, Component, Query, Res, Transform, Vec3},
+    prelude::{
+        Added, BuildChildren, Bundle, Camera, Changed, Commands, Component, Entity, Query, Res,
+        Transform, Vec3, With,
+    },
     sprite::{SpriteSheetBundle, TextureAtlasSprite},
 };
 use bevy_ecs_ldtk::{EntityInstance, GridCoords, LdtkEntity, LevelSelection, Worldly};
 use bevy_inspector_egui::Inspectable;
 
 use crate::{
-    abilities::{Element, Equiptment},
+    abilities::{Element, Equipment},
     animation::Animated,
     input::Controllable,
     physics::PhysicsObjectBundle,
@@ -27,13 +30,14 @@ pub struct Player {
     pub unlocked_air: bool,
     pub unlocked_water: bool,
     pub unlocked_boots: bool,
-    pub combination: (Option<Equiptment>, Option<Element>),
+    pub unlocked_cloak: bool,
+    pub combination: (Option<Equipment>, Option<Element>),
     pub near_checkpoint: bool,
 }
 impl Player {
-    pub fn has_equipt(&self, equiptment: Equiptment) -> bool {
+    pub fn has_equipt(&self, equipment: Equipment) -> bool {
         if let Some(slot) = &self.combination.0 {
-            if slot == &equiptment {
+            if slot == &equipment {
                 return true;
             }
         }
@@ -51,16 +55,18 @@ impl Player {
 
     pub fn get_combination_description(&self) -> &str {
         match self.combination {
-            (Some(Equiptment::Staff), Some(Element::Fire)) => "Left click to cast Fireball",
-            (Some(Equiptment::Staff), Some(Element::Air)) => "Left click to cast a gust of wind",
-            (Some(Equiptment::Staff), Some(Element::Water)) => "Left click to summon water",
-            (Some(Equiptment::MagicBoots), Some(Element::Fire)) => {
+            (Some(Equipment::Staff), Some(Element::Fire)) => "Left click to cast Fireball",
+            (Some(Equipment::Staff), Some(Element::Air)) => "Left click to cast a gust of wind",
+            (Some(Equipment::Staff), Some(Element::Water)) => "Left click to summon water",
+            (Some(Equipment::MagicBoots), Some(Element::Fire)) => {
                 "Jump higher with an explosive kick"
             }
-            (Some(Equiptment::MagicBoots), Some(Element::Air)) => "Double jump",
-            (Some(Equiptment::MagicBoots), Some(Element::Water)) => {
+            (Some(Equipment::MagicBoots), Some(Element::Air)) => "Double jump",
+            (Some(Equipment::MagicBoots), Some(Element::Water)) => {
                 "Flow like water (movement speed up)"
             }
+            (Some(Equipment::Cloak), Some(Element::Fire)) => "Lava resistance",
+            (Some(Equipment::Cloak), Some(Element::Water)) => "Water resistance",
             _ => "No effect",
         }
     }
@@ -134,15 +140,20 @@ pub fn animation_state_update(
 }
 
 pub fn set_spawn(
+    mut commands: Commands,
     level_selection: Res<LevelSelection>,
-    mut query: Query<(&mut Player, &mut Transform), Added<Player>>,
+    mut query: Query<(Entity, &mut Player, &mut Transform), Added<Player>>,
+    camera: Query<Entity, With<Camera>>,
 ) {
-    for (mut player, mut transform) in query.iter_mut() {
+    for (entity, mut player, mut transform) in query.iter_mut() {
         // Note: for some reason player transform is wrong when this system runs so I've hard coded
         // it for now
         player.checkpoint.x = -536.0;
         player.checkpoint.y = 664.0;
         player.checkpoint_level = level_selection.clone();
         transform.translation.z = 5.0;
+        for camera in camera.iter() {
+            commands.entity(entity).add_child(camera);
+        }
     }
 }

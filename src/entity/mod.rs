@@ -1,4 +1,4 @@
-use bevy::prelude::{Component, Vec3};
+use bevy::prelude::{Color, Component, Vec3};
 use bevy_ecs_ldtk::{prelude::FieldValue, EntityInstance};
 use bevy_inspector_egui::Inspectable;
 use heron::{CollisionLayers, CollisionShape, PhysicMaterial, RigidBody, RotationConstraints};
@@ -16,6 +16,7 @@ pub mod lava;
 pub mod player;
 pub mod signpost;
 pub mod trophy;
+pub mod water;
 
 #[derive(Component, Default)]
 pub struct Flamable;
@@ -27,7 +28,7 @@ impl From<EntityInstance> for Animated {
             "Checkpoint" => Animated::new(0.1, 0, 9, false),
             "Goblin" => Animated::new(0.1, 18, 22, false),
             "Ability" => Animated::new(0.1, 0, 6, false),
-            "Lava" => Animated::new(0.2, 0, 8, false),
+            "Lava" | "Water" => Animated::new(0.2, 0, 8, false),
             _ => Animated::new(0.1, 0, 1, false),
         }
     }
@@ -60,6 +61,7 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                         PhysicsLayers::Movable,
                         PhysicsLayers::Interactable,
                         PhysicsLayers::Lava,
+                        PhysicsLayers::Water,
                         PhysicsLayers::Spikes,
                     ]),
                 ..Default::default()
@@ -128,36 +130,80 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                     .with_group(PhysicsLayers::Lava),
                 ..Default::default()
             },
+            "Water" => PhysicsObjectBundle {
+                collider: CollisionShape::Cuboid {
+                    half_extends: Vec3 {
+                        x: 8.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                    border_radius: None,
+                },
+                rb: RigidBody::Sensor,
+                layer: CollisionLayers::all_masks::<PhysicsLayers>()
+                    .with_group(PhysicsLayers::Water),
+                ..Default::default()
+            },
             _ => PhysicsObjectBundle::default(),
         }
     }
 }
 
 #[derive(Component, Default, Inspectable)]
-pub struct ProximityText(String);
+pub struct ProximityText {
+    pub text: String,
+    pub width: f32,
+    pub color: Color,
+}
 
 impl From<EntityInstance> for ProximityText {
     fn from(entity_instance: EntityInstance) -> Self {
-        let text = match entity_instance.identifier.as_ref() {
+        match entity_instance.identifier.as_ref() {
             "Signpost" => {
-                if let Some(field_instance) = entity_instance
-                    .field_instances
-                    .iter()
-                    .find(|f| f.identifier == *"Text")
+                let mut width = 250.0;
+                let field_instances = &entity_instance.field_instances;
+                if let Some(field_instance) =
+                    field_instances.iter().find(|f| f.identifier == *"Text")
                 {
                     if let FieldValue::String(Some(text)) = &field_instance.value {
-                        text
+                        if let Some(field_instance) =
+                            field_instances.iter().find(|f| f.identifier == *"Width")
+                        {
+                            if let FieldValue::Float(Some(val)) = &field_instance.value {
+                                width = *val;
+                            }
+                        }
+                        ProximityText {
+                            text: text.into(),
+                            width,
+                            color: Color::rgb(0.58, 0.345, 0.282),
+                        }
                     } else {
-                        "Error"
+                        ProximityText {
+                            text: "Error".into(),
+                            width,
+                            color: Color::RED,
+                        }
                     }
                 } else {
-                    "Error"
+                    ProximityText {
+                        text: "Error".into(),
+                        width,
+                        color: Color::RED,
+                    }
                 }
             }
-            "Checkpoint" => "Checkpoint saved.\nPress <E> to combine",
-            "Trophy" => "You Win!\nThanks for playing.\nI'd love to hear your feedback.",
-            _ => "Entity should not have ProximityText component",
-        };
-        ProximityText(text.into())
+            "Checkpoint" => ProximityText {
+                text: "Checkpoint saved.\nPress <E> to combine".into(),
+                width: 125.0,
+                color: Color::GRAY,
+            },
+            "Trophy" => ProximityText {
+                text: "You Win!\nThanks for playing.\nI'd love to hear your feedback.".into(),
+                width: 200.0,
+                color: Color::rgb(0.953, 0.816, 0.251),
+            },
+            _ => panic!("Entity should not have ProximityText component"),
+        }
     }
 }

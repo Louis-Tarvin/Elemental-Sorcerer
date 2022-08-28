@@ -16,13 +16,13 @@ use crate::{
 use super::player::Player;
 
 #[derive(Component, Default)]
-pub struct Lava;
+pub struct Water;
 
 #[derive(Bundle, LdtkEntity)]
-pub struct LavaBundle {
-    lava: Lava,
+pub struct WaterBundle {
+    water: Water,
     #[bundle]
-    #[sprite_sheet_bundle("sprites/lava.png", 16.0, 16.0, 9, 1, 0.0, 0.0, 0)]
+    #[sprite_sheet_bundle("sprites/water.png", 16.0, 16.0, 8, 1, 0.0, 0.0, 0)]
     pub sprite_sheet_bundle: SpriteSheetBundle,
     #[bundle]
     #[from_entity_instance]
@@ -33,7 +33,7 @@ pub struct LavaBundle {
 
 pub fn check_collision(
     mut commands: Commands,
-    lava: Query<Entity, With<Lava>>,
+    water: Query<Entity, With<Water>>,
     player: Query<&Player>,
     mut collision_events: EventReader<CollisionEvent>,
     debug_settings: Res<DebugSettings>,
@@ -44,16 +44,16 @@ pub fn check_collision(
         .filter_map(|e| {
             let (e1, e2) = e.rigid_body_entities();
             if let Ok(player) = player.get(e1) {
-                if lava.get(e2).is_ok()
+                if water.get(e2).is_ok()
                     && !debug_settings.imortality
-                    && !(player.has_equipt(Equipment::Cloak) && player.has_infused(Element::Fire))
+                    && !(player.has_equipt(Equipment::Cloak) && player.has_infused(Element::Water))
                 {
                     return Some(e1);
                 }
             } else if let Ok(player) = player.get(e2) {
-                if lava.get(e1).is_ok()
+                if water.get(e1).is_ok()
                     && !debug_settings.imortality
-                    && !(player.has_equipt(Equipment::Cloak) && player.has_infused(Element::Fire))
+                    && !(player.has_equipt(Equipment::Cloak) && player.has_infused(Element::Water))
                 {
                     return Some(e2);
                 }

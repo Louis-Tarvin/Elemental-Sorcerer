@@ -16,7 +16,7 @@ use heron::{
 };
 
 use crate::{
-    abilities::{Element, Equiptment},
+    abilities::{Element, Equipment},
     animation::Animated,
     audio::AudioAssets,
     debug::DebugSettings,
@@ -44,6 +44,7 @@ pub enum PhysicsLayers {
     Movable,
     Wood,
     Lava,
+    WaterDrop,
     Water,
     Spikes,
 }
@@ -101,8 +102,7 @@ pub fn handle_controllables(
         for &child in children.iter() {
             if let Ok(mut detector) = ground_detectors.get_mut(child) {
                 if jumping && (!detector.coyote_timer.finished() || debug_settings.flying) {
-                    if player.has_equipt(Equiptment::MagicBoots)
-                        && player.has_infused(Element::Fire)
+                    if player.has_equipt(Equipment::MagicBoots) && player.has_infused(Element::Fire)
                     {
                         velocity.linear.y = jump_velocity * 1.3;
                         let texture_handle = game_assets.explosion.clone();
@@ -129,7 +129,7 @@ pub fn handle_controllables(
                     detector.coyote_timer.tick(Duration::from_secs(10.0 as u64));
                 } else if jumping
                     && detector.has_double_jump
-                    && player.has_equipt(Equiptment::MagicBoots)
+                    && player.has_equipt(Equipment::MagicBoots)
                     && player.has_infused(Element::Air)
                 {
                     // Double jump
@@ -159,7 +159,7 @@ pub fn handle_controllables(
                     acceleration / 2.0
                 };
 
-                let max_speed = if player.has_equipt(Equiptment::MagicBoots)
+                let max_speed = if player.has_equipt(Equipment::MagicBoots)
                     && player.has_infused(Element::Water)
                 {
                     max_speed * 1.5
@@ -188,23 +188,22 @@ pub fn handle_controllables(
                         velocity.linear.x = (velocity.linear.x - delta).max(0.0)
                     }
                 }
+                if velocity.linear.y > 0.1 && !detector.is_grounded {
+                    if *animation != AnimationState::JumpUp {
+                        *animation = AnimationState::JumpUp;
+                    }
+                } else if velocity.linear.y < -0.1 && !detector.is_grounded {
+                    if *animation != AnimationState::JumpDown {
+                        *animation = AnimationState::JumpDown;
+                    }
+                } else if velocity.linear.x.abs() > 0.05 {
+                    if *animation != AnimationState::Walking {
+                        *animation = AnimationState::Walking;
+                    }
+                } else if *animation != AnimationState::Idle {
+                    *animation = AnimationState::Idle;
+                }
             }
-        }
-
-        if velocity.linear.y > 0.1 {
-            if *animation != AnimationState::JumpUp {
-                *animation = AnimationState::JumpUp;
-            }
-        } else if velocity.linear.y < -0.1 {
-            if *animation != AnimationState::JumpDown {
-                *animation = AnimationState::JumpDown;
-            }
-        } else if velocity.linear.x.abs() > 0.05 {
-            if *animation != AnimationState::Walking {
-                *animation = AnimationState::Walking;
-            }
-        } else if *animation != AnimationState::Idle {
-            *animation = AnimationState::Idle;
         }
     }
 }
@@ -272,7 +271,6 @@ pub fn check_grounded(
                     }
                 }
             }
-            // println!("active_collisions: {}", ground_detector.active_collisions);
             if ground_detector.active_collisions > 0 {
                 ground_detector.is_grounded = true;
                 ground_detector.has_double_jump = true;

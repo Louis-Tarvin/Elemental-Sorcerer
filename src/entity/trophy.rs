@@ -1,14 +1,13 @@
 use bevy::{
     prelude::{Bundle, Children, Component, Entity, EventReader, Query, Visibility, With},
     sprite::SpriteBundle,
-    text::Text,
 };
 use bevy_ecs_ldtk::LdtkEntity;
 use heron::CollisionEvent;
 
 use crate::physics::PhysicsObjectBundle;
 
-use super::{player::Player, ProximityText};
+use super::{player::Player, signpost::TextBox, ProximityText};
 
 #[derive(Component, Default)]
 pub struct Trophy;
@@ -29,12 +28,11 @@ pub struct TrophyBundle {
 pub fn check_near(
     trophies: Query<&Children, (With<ProximityText>, With<Trophy>)>,
     player: Query<Entity, With<Player>>,
-    mut text: Query<&mut Visibility, With<Text>>,
+    mut text: Query<&mut Visibility, With<TextBox>>,
     mut collisions: EventReader<CollisionEvent>,
 ) {
     for player_entity in player.iter() {
         for collision in collisions.iter() {
-            // for (entity, children) in signposts.iter_mut() {
             match collision {
                 CollisionEvent::Started(a, b) => {
                     if a.rigid_body_entity() == player_entity {

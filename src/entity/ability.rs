@@ -25,6 +25,7 @@ pub enum Ability {
     Air,
     Water,
     MagicBoots,
+    Cloak,
 }
 
 impl Display for Ability {
@@ -34,6 +35,7 @@ impl Display for Ability {
             Ability::Air => write!(f, "Air"),
             Ability::Water => write!(f, "Water"),
             Ability::MagicBoots => write!(f, "Magic Boots"),
+            Ability::Cloak => write!(f, "Cloak of Resistance"),
         }
     }
 }
@@ -58,6 +60,7 @@ impl LdtkEntity for Ability {
                     "Air" => Ability::Air,
                     "Water" => Ability::Water,
                     "Boots" => Ability::MagicBoots,
+                    "Cloak" => Ability::Cloak,
                     _ => panic!("Unknown ability enum variant: {}", ability),
                 }
             } else {
@@ -93,7 +96,6 @@ pub fn check_near(
 ) {
     for (player_entity, mut player) in player.iter_mut() {
         for collision in collisions.iter() {
-            // for (entity, children) in signposts.iter_mut() {
             if let CollisionEvent::Started(a, b) = collision {
                 if a.rigid_body_entity() == player_entity {
                     if let Ok(ability) = ability_orbs.get(b.rigid_body_entity()) {
@@ -102,6 +104,7 @@ pub fn check_near(
                             Ability::Air => player.unlocked_air = true,
                             Ability::MagicBoots => player.unlocked_boots = true,
                             Ability::Water => player.unlocked_water = true,
+                            Ability::Cloak => player.unlocked_cloak = true,
                         }
                         commands.entity(b.rigid_body_entity()).despawn();
                         audio.play(audio_assets.collect.clone());
@@ -113,6 +116,7 @@ pub fn check_near(
                             Ability::Air => player.unlocked_air = true,
                             Ability::MagicBoots => player.unlocked_boots = true,
                             Ability::Water => player.unlocked_water = true,
+                            Ability::Cloak => player.unlocked_cloak = true,
                         }
                         commands.entity(a.rigid_body_entity()).despawn();
                         audio.play(audio_assets.collect.clone());
@@ -148,6 +152,11 @@ pub fn dont_spawn_if_collected(
                 }
                 Ability::MagicBoots => {
                     if player.unlocked_boots {
+                        commands.entity(entity).despawn();
+                    }
+                }
+                Ability::Cloak => {
+                    if player.unlocked_cloak {
                         commands.entity(entity).despawn();
                     }
                 }

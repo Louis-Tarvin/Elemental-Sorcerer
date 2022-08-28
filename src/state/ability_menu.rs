@@ -13,7 +13,7 @@ use bevy_kira_audio::{Audio, AudioControl};
 use heron::PhysicsTime;
 
 use crate::{
-    abilities::{Element, Equiptment},
+    abilities::{Element, Equipment},
     audio::AudioAssets,
     debug::DebugSettings,
     entity::player::Player,
@@ -111,7 +111,7 @@ pub fn setup(
                         .with_children(|parent| {
                             // Title text
                             parent.spawn_bundle(TextBundle::from_section(
-                                "Combine equiptment with an element to create an ability",
+                                "Combine equipment with an element to create an ability",
                                 TextStyle {
                                     font: game_assets.pixel_font.clone(),
                                     font_size: 16.0,
@@ -134,7 +134,7 @@ pub fn setup(
                             ..Default::default()
                         })
                         .with_children(|parent| {
-                            // Equiptment buttons wrapper
+                            // Equipment buttons wrapper
                             parent
                                 .spawn_bundle(NodeBundle {
                                     style: Style {
@@ -155,7 +155,7 @@ pub fn setup(
                                 })
                                 .with_children(|parent| {
                                     parent.spawn_bundle(TextBundle::from_section(
-                                        "Equiptment:",
+                                        "Equipment:",
                                         TextStyle {
                                             font: game_assets.pixel_font.clone(),
                                             font_size: 20.0,
@@ -170,7 +170,7 @@ pub fn setup(
                                             image: game_assets.button.clone().into(),
                                             ..Default::default()
                                         })
-                                        .insert(Equiptment::Staff)
+                                        .insert(Equipment::Staff)
                                         .with_children(|parent| {
                                             parent.spawn_bundle(TextBundle::from_section(
                                                 "Staff",
@@ -191,10 +191,32 @@ pub fn setup(
                                                 image: game_assets.button.clone().into(),
                                                 ..Default::default()
                                             })
-                                            .insert(Equiptment::MagicBoots)
+                                            .insert(Equipment::MagicBoots)
                                             .with_children(|parent| {
                                                 parent.spawn_bundle(TextBundle::from_section(
                                                     "Magic Boots",
+                                                    TextStyle {
+                                                        font: game_assets.pixel_font.clone(),
+                                                        font_size: 17.0,
+                                                        color: Color::WHITE,
+                                                    },
+                                                ));
+                                            });
+                                    }
+                                    // Cloak of resistance button
+                                    if player.unlocked_cloak || debug_settings.unlock_all_abilities
+                                    {
+                                        parent
+                                            .spawn_bundle(ButtonBundle {
+                                                style: button_style.clone(),
+                                                color: Color::rgb(0.15, 0.15, 0.15).into(),
+                                                image: game_assets.button.clone().into(),
+                                                ..Default::default()
+                                            })
+                                            .insert(Equipment::Cloak)
+                                            .with_children(|parent| {
+                                                parent.spawn_bundle(TextBundle::from_section(
+                                                    "Cloak of\nResistance",
                                                     TextStyle {
                                                         font: game_assets.pixel_font.clone(),
                                                         font_size: 17.0,
@@ -387,22 +409,22 @@ pub fn setup(
         .insert(UiRootNode);
 }
 
-pub fn equiptment_button_system(
+pub fn equipment_button_system(
     mut interaction_query: Query<
-        (&Interaction, &Equiptment, &mut UiColor),
+        (&Interaction, &Equipment, &mut UiColor),
         (With<Button>, Changed<Interaction>),
     >,
     mut player_query: Query<&mut Player>,
     audio: Res<Audio>,
     audio_assets: Res<AudioAssets>,
 ) {
-    for (interaction, equiptment, mut color) in &mut interaction_query {
+    for (interaction, equipment, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
                 *color = Color::rgb(0.55, 0.55, 0.55).into();
                 audio.play(audio_assets.blip2.clone());
                 for mut player in player_query.iter_mut() {
-                    player.combination.0 = Some(*equiptment);
+                    player.combination.0 = Some(*equipment);
                 }
             }
             Interaction::Hovered => {
@@ -411,7 +433,7 @@ pub fn equiptment_button_system(
             }
             Interaction::None => {
                 for player in player_query.iter() {
-                    if player.has_equipt(*equiptment) {
+                    if player.has_equipt(*equipment) {
                         *color = Color::rgb(0.15, 0.45, 0.15).into();
                     } else {
                         *color = Color::rgb(0.15, 0.15, 0.15).into();
@@ -458,13 +480,13 @@ pub fn element_button_system(
 }
 
 pub fn update_button_colours(
-    mut equiptment_query: Query<(&Equiptment, &mut UiColor), (With<Button>, Without<Element>)>,
-    mut element_query: Query<(&Element, &mut UiColor), (With<Button>, Without<Equiptment>)>,
+    mut equipment_query: Query<(&Equipment, &mut UiColor), (With<Button>, Without<Element>)>,
+    mut element_query: Query<(&Element, &mut UiColor), (With<Button>, Without<Equipment>)>,
     player_query: Query<&Player, Changed<Player>>,
 ) {
     for player in player_query.iter() {
-        for (equiptment, mut color) in equiptment_query.iter_mut() {
-            if player.has_equipt(*equiptment) {
+        for (equipment, mut color) in equipment_query.iter_mut() {
+            if player.has_equipt(*equipment) {
                 *color = Color::rgb(0.15, 0.45, 0.15).into();
             } else {
                 *color = Color::rgb(0.15, 0.15, 0.15).into();

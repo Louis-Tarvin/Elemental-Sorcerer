@@ -17,7 +17,6 @@ use heron::{
 use crate::{
     animation::Animated,
     audio::AudioAssets,
-    damage::Hurtbox,
     destruction::DestructionTimer,
     entity::{block::Block, lava::Lava, player::Player, Flamable},
     input::Controllable,
@@ -26,15 +25,17 @@ use crate::{
 };
 
 #[derive(Inspectable, Component, PartialEq, Eq, Clone, Copy)]
-pub enum Equiptment {
+pub enum Equipment {
     Staff,
     MagicBoots,
+    Cloak,
 }
-impl Display for Equiptment {
+impl Display for Equipment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Staff => write!(f, "Staff"),
             Self::MagicBoots => write!(f, "Magic Boots"),
+            Self::Cloak => write!(f, "Cloak of Resistance"),
         }
     }
 }
@@ -80,7 +81,7 @@ pub fn use_ability(
         controllable.ability_timer.tick(time.delta());
         if controllable.ability
             && controllable.ability_timer.finished()
-            && player.has_equipt(Equiptment::Staff)
+            && player.has_equipt(Equipment::Staff)
         {
             if player.has_infused(Element::Fire) {
                 controllable.ability_timer.reset();
@@ -204,7 +205,7 @@ pub fn use_ability(
                     })
                     .insert(
                         CollisionLayers::none()
-                            .with_group(PhysicsLayers::Water)
+                            .with_group(PhysicsLayers::WaterDrop)
                             .with_masks([PhysicsLayers::Terrain, PhysicsLayers::Lava]),
                     );
                 audio.play(audio_assets.pew.clone());
@@ -308,7 +309,7 @@ fn resolve_projectile_collision(
                 if *rb != RigidBody::Static {
                     *rb = RigidBody::Static;
                 }
-                commands.entity(entity).remove::<Hurtbox>();
+                commands.entity(entity).remove::<Lava>();
                 if !layers.contains_group(PhysicsLayers::Terrain) {
                     *layers = layers.with_group(PhysicsLayers::Terrain);
                 }
