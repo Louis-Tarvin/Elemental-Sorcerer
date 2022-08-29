@@ -102,7 +102,7 @@ pub fn use_ability(
                         sprite: projectile_sprite,
                         ..Default::default()
                     })
-                    .insert(Animated::new(0.1, 0, 4, false))
+                    .insert(Animated::new(0.05, 0, 4, false))
                     .insert(Projectile::Fireball)
                     .insert(DestructionTimer(Timer::from_seconds(0.6, false)))
                     .insert_bundle(PhysicsObjectBundle {

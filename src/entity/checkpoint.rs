@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        Bundle, Children, Component, Entity, EventReader, GlobalTransform, Query, Res, Visibility,
-        With,
+        Added, Bundle, Children, Component, Entity, EventReader, GlobalTransform, Query, Res,
+        Transform, Visibility, With,
     },
     sprite::SpriteSheetBundle,
 };
@@ -54,6 +54,7 @@ pub fn check_near(
                             }
                             // set checkpoint
                             player.checkpoint = transform.translation();
+                            player.checkpoint.y += 3.0;
                             player.checkpoint_level = level_selection.clone();
                             player.near_checkpoint = true;
                             audio.play(audio_assets.ping.clone());
@@ -68,6 +69,7 @@ pub fn check_near(
                             }
                             // set checkpoint
                             player.checkpoint = transform.translation();
+                            player.checkpoint.y += 3.0;
                             player.checkpoint_level = level_selection.clone();
                             player.near_checkpoint = true;
                             audio.play(audio_assets.ping.clone());
@@ -99,5 +101,11 @@ pub fn check_near(
                 }
             }
         }
+    }
+}
+
+pub fn offset(mut query: Query<&mut Transform, Added<Checkpoint>>) {
+    for mut transform in query.iter_mut() {
+        transform.translation.y += 2.0;
     }
 }

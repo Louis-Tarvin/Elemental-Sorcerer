@@ -253,7 +253,7 @@ pub fn restart_level(
     if input.just_pressed(KeyCode::R) {
         for (mut transform, player) in player_query.iter_mut() {
             transform.translation = player.checkpoint;
-            transform.translation.z = 5.0;
+            transform.translation.z = 7.0;
             *level_selection = player.checkpoint_level.clone();
         }
         for level_entity in level_query.iter() {

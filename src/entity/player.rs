@@ -148,10 +148,10 @@ pub fn set_spawn(
     for (entity, mut player, mut transform) in query.iter_mut() {
         // Note: for some reason player transform is wrong when this system runs so I've hard coded
         // it for now
-        player.checkpoint.x = -536.0;
-        player.checkpoint.y = 664.0;
+        player.checkpoint.x = -1064.0;
+        player.checkpoint.y = 776.0;
         player.checkpoint_level = level_selection.clone();
-        transform.translation.z = 5.0;
+        transform.translation.z = 7.0;
         for camera in camera.iter() {
             commands.entity(entity).add_child(camera);
         }

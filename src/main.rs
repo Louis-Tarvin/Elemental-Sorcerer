@@ -26,6 +26,7 @@ use entity::{
     lava::LavaBundle,
     player::{Player, PlayerBundle},
     signpost::SignpostBundle,
+    torch::TorchBundle,
     trophy::TrophyBundle,
     water::WaterBundle,
 };
@@ -64,10 +65,9 @@ fn main() {
         .register_inspectable::<Player>()
         .insert_resource(ClearColor(Color::rgb(0.133, 0.122, 0.192)))
         .insert_resource(WindowDescriptor {
-            width: 800.,
-            height: 600.,
+            width: 1280.,
+            height: 720.,
             title: "Elemental Sorcerer".to_string(),
-            canvas: Some("#bevy".to_owned()),
             ..Default::default()
         })
         .insert_resource(DebugSettings::default())
@@ -80,6 +80,7 @@ fn main() {
         })
         .insert_resource(Gravity::from(Vec3::new(0.0, -500.0, 0.0)))
         .add_startup_system(level::prevent_asset_unloading)
+        .add_startup_system(debug::hide_at_startup)
         .add_loading_state(
             LoadingState::new(State::Loading)
                 .continue_to_state(State::InGame)
@@ -93,6 +94,7 @@ fn main() {
         .add_system_set(SystemSet::on_enter(State::InGame).with_system(setup))
         .add_system_set(
             SystemSet::on_update(State::InGame)
+                .with_system(debug::toggle_inspector)
                 .with_system(input::system.label(input::InputLabel::ControllableUpdate))
                 .with_system(level::spawn_wall_collision)
                 .with_system(level::spawn_spike_collision)
@@ -135,6 +137,8 @@ fn main() {
                 .with_system(entity::lava::check_collision)
                 .with_system(entity::water::check_collision)
                 .with_system(entity::checkpoint::check_near)
+                .with_system(entity::checkpoint::offset)
+                .with_system(entity::torch::offset)
                 .with_system(entity::trophy::check_near),
         )
         .add_system_set(
@@ -159,6 +163,7 @@ fn main() {
         .register_ldtk_entity::<WoodBlockBundle>("WoodBlock")
         .register_ldtk_entity::<LavaBundle>("Lava")
         .register_ldtk_entity::<WaterBundle>("Water")
+        .register_ldtk_entity::<TorchBundle>("Torch")
         .register_ldtk_entity::<TrophyBundle>("Trophy")
         .run();
 }

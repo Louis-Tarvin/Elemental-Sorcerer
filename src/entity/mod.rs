@@ -15,6 +15,7 @@ pub mod goblin;
 pub mod lava;
 pub mod player;
 pub mod signpost;
+pub mod torch;
 pub mod trophy;
 pub mod water;
 
@@ -28,7 +29,9 @@ impl From<EntityInstance> for Animated {
             "Checkpoint" => Animated::new(0.1, 0, 9, false),
             "Goblin" => Animated::new(0.1, 18, 22, false),
             "Ability" => Animated::new(0.1, 0, 6, false),
-            "Lava" | "Water" => Animated::new(0.2, 0, 8, false),
+            "Lava" => Animated::new(0.3, 0, 8, false),
+            "Water" => Animated::new(0.15, 0, 8, false),
+            "Torch" => Animated::new(0.1, 0, 12, false),
             _ => Animated::new(0.1, 0, 1, false),
         }
     }
@@ -201,7 +204,7 @@ impl From<EntityInstance> for ProximityText {
             "Trophy" => ProximityText {
                 text: "You Win!\nThanks for playing.\nI'd love to hear your feedback.".into(),
                 width: 200.0,
-                color: Color::rgb(0.953, 0.816, 0.251),
+                color: Color::rgb(0.839, 0.604, 0.306),
             },
             _ => panic!("Entity should not have ProximityText component"),
         }
