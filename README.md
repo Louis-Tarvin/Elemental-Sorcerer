@@ -1,5 +1,5 @@
 # Elemental-Sorcerer
-A game made in 10 days for Bevy Jam #2. The theme was: combine.
+A game made in 10 days for [Bevy Jam #2](https://itch.io/jam/bevy-jam-2). The theme was: combine.
 
 It's a mini metroidvania where the player can infuse their equipment with the power of the elements.
 
@@ -15,7 +15,7 @@ You can play it in your browser on Itch.io [here](https://louisnivrat.itch.io/el
 
 Licensed under either of
 
- * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+ * Apache License, Version 2.0, (http://www.apache.org/licenses/LICENSE-2.0)
+ * MIT license (http://opensource.org/licenses/MIT)
 
 at your option.
