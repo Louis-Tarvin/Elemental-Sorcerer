@@ -20,7 +20,7 @@ use crate::{
     input::Controllable,
 };
 
-use super::{loading::GameAssets, State};
+use super::{load_game::GameAssets, State};
 
 #[derive(Component)]
 pub struct UiRootNode;
@@ -30,6 +30,22 @@ pub struct Slot1Text;
 pub struct Slot2Text;
 #[derive(Component)]
 pub struct CombinationText;
+
+#[derive(Component, Default, PartialEq, Eq, Clone, Copy)]
+pub struct BtnGridPos {
+    pub row: u8,
+    pub col: u8,
+}
+impl BtnGridPos {
+    pub fn new(row: u8, col: u8) -> Self {
+        Self { row, col }
+    }
+}
+
+#[derive(Default)]
+pub struct AbilityMenuState {
+    pub selected_pos: BtnGridPos,
+}
 
 pub fn trigger_enter(
     mut app_state: ResMut<bevy::prelude::State<State>>,
@@ -50,6 +66,8 @@ pub fn setup(
     player: Query<&Player>,
     debug_settings: Res<DebugSettings>,
 ) {
+    commands.insert_resource(AbilityMenuState::default());
+
     let player = player
         .get_single()
         .expect("There should only be one player");
@@ -171,6 +189,7 @@ pub fn setup(
                                             ..Default::default()
                                         })
                                         .insert(Equipment::Staff)
+                                        .insert(BtnGridPos::new(0, 0))
                                         .with_children(|parent| {
                                             parent.spawn_bundle(TextBundle::from_section(
                                                 "Staff",
@@ -192,6 +211,7 @@ pub fn setup(
                                                 ..Default::default()
                                             })
                                             .insert(Equipment::MagicBoots)
+                                            .insert(BtnGridPos::new(1, 0))
                                             .with_children(|parent| {
                                                 parent.spawn_bundle(TextBundle::from_section(
                                                     "Magic Boots",
@@ -214,6 +234,7 @@ pub fn setup(
                                                 ..Default::default()
                                             })
                                             .insert(Equipment::Cloak)
+                                            .insert(BtnGridPos::new(2, 0))
                                             .with_children(|parent| {
                                                 parent.spawn_bundle(TextBundle::from_section(
                                                     "Cloak of\nResistance",
@@ -265,6 +286,7 @@ pub fn setup(
                                                 ..Default::default()
                                             })
                                             .insert(Element::Fire)
+                                            .insert(BtnGridPos::new(0, 1))
                                             .with_children(|parent| {
                                                 parent.spawn_bundle(TextBundle::from_section(
                                                     "Fire",
@@ -287,6 +309,7 @@ pub fn setup(
                                                 ..Default::default()
                                             })
                                             .insert(Element::Air)
+                                            .insert(BtnGridPos::new(1, 1))
                                             .with_children(|parent| {
                                                 parent.spawn_bundle(TextBundle::from_section(
                                                     "Air",
@@ -310,6 +333,7 @@ pub fn setup(
                                                 ..Default::default()
                                             })
                                             .insert(Element::Water)
+                                            .insert(BtnGridPos::new(2, 1))
                                             .with_children(|parent| {
                                                 parent.spawn_bundle(TextBundle::from_section(
                                                     "Water",
@@ -396,7 +420,7 @@ pub fn setup(
                         })
                         .with_children(|parent| {
                             parent.spawn_bundle(TextBundle::from_section(
-                                "Press <ESC> when finished",
+                                "Use arrow keys & <z> to select. Press <x> when done",
                                 TextStyle {
                                     font: game_assets.pixel_font.clone(),
                                     font_size: 15.0,
@@ -409,94 +433,147 @@ pub fn setup(
         .insert(UiRootNode);
 }
 
-pub fn equipment_button_system(
-    mut interaction_query: Query<
-        (&Interaction, &Equipment, &mut UiColor),
+pub fn button_interaction_system(
+    element_button_query: Query<
+        (&Interaction, &Element, &BtnGridPos),
+        (With<Button>, Changed<Interaction>),
+    >,
+    equipment_button_query: Query<
+        (&Interaction, &Equipment, &BtnGridPos),
         (With<Button>, Changed<Interaction>),
     >,
     mut player_query: Query<&mut Player>,
-    audio: Res<Audio>,
-    audio_assets: Res<AudioAssets>,
-) {
-    for (interaction, equipment, mut color) in &mut interaction_query {
-        match *interaction {
-            Interaction::Clicked => {
-                *color = Color::rgb(0.55, 0.55, 0.55).into();
-                audio.play(audio_assets.blip2.clone());
-                for mut player in player_query.iter_mut() {
-                    player.combination.0 = Some(*equipment);
-                }
-            }
-            Interaction::Hovered => {
-                audio.play(audio_assets.blip1.clone());
-                *color = Color::rgb(0.35, 0.35, 0.35).into();
-            }
-            Interaction::None => {
-                for player in player_query.iter() {
-                    if player.has_equipt(*equipment) {
-                        *color = Color::rgb(0.15, 0.45, 0.15).into();
-                    } else {
-                        *color = Color::rgb(0.15, 0.15, 0.15).into();
-                    }
-                }
-            }
-        }
-    }
-}
-
-pub fn element_button_system(
-    mut interaction_query: Query<
-        (&Interaction, &Element, &mut UiColor),
-        (With<Button>, Changed<Interaction>),
-    >,
-    mut player_query: Query<&mut Player>,
+    mut state: ResMut<AbilityMenuState>,
     audio: Res<Audio>,
     audio_manager: Res<AudioAssets>,
 ) {
-    for (interaction, element, mut color) in &mut interaction_query {
+    for (interaction, element, grid_pos) in &element_button_query {
         match *interaction {
             Interaction::Clicked => {
-                *color = Color::rgb(0.55, 0.55, 0.55).into();
                 audio.play(audio_manager.blip2.clone());
                 for mut player in player_query.iter_mut() {
                     player.combination.1 = Some(*element);
                 }
             }
             Interaction::Hovered => {
-                *color = Color::rgb(0.35, 0.35, 0.35).into();
+                state.selected_pos = *grid_pos;
                 audio.play(audio_manager.blip1.clone());
             }
-            Interaction::None => {
-                for player in player_query.iter() {
-                    if player.has_infused(*element) {
-                        *color = Color::rgb(0.15, 0.45, 0.15).into();
-                    } else {
-                        *color = Color::rgb(0.15, 0.15, 0.15).into();
-                    }
+            _ => {}
+        }
+    }
+    for (interaction, equipment, grid_pos) in &equipment_button_query {
+        match *interaction {
+            Interaction::Clicked => {
+                audio.play(audio_manager.blip2.clone());
+                for mut player in player_query.iter_mut() {
+                    player.combination.0 = Some(*equipment);
                 }
             }
+            Interaction::Hovered => {
+                state.selected_pos = *grid_pos;
+                audio.play(audio_manager.blip1.clone());
+            }
+            _ => {}
+        }
+    }
+}
+pub fn button_mouse_select(
+    mut element_button_query: Query<
+        (&Element, &BtnGridPos, &mut UiColor),
+        (With<Button>, Without<Equipment>),
+    >,
+    mut equipment_button_query: Query<
+        (&Equipment, &BtnGridPos, &mut UiColor),
+        (With<Button>, Without<Element>),
+    >,
+    player_query: Query<&mut Player>,
+    state: ResMut<AbilityMenuState>,
+) {
+    let player = player_query
+        .get_single()
+        .expect("There should only be one player");
+    for (element, grid_pos, mut color) in &mut element_button_query {
+        if state.selected_pos == *grid_pos {
+            if player.has_infused(*element) {
+                *color = Color::rgb(0.25, 0.55, 0.25).into();
+            } else {
+                *color = Color::rgb(0.35, 0.35, 0.35).into();
+            }
+        } else if player.has_infused(*element) {
+            *color = Color::rgb(0.15, 0.45, 0.15).into();
+        } else {
+            *color = Color::rgb(0.15, 0.15, 0.15).into();
+        }
+    }
+    for (equipment, grid_pos, mut color) in &mut equipment_button_query {
+        if state.selected_pos == *grid_pos {
+            if player.has_equipt(*equipment) {
+                *color = Color::rgb(0.25, 0.55, 0.25).into();
+            } else {
+                *color = Color::rgb(0.35, 0.35, 0.35).into();
+            }
+        } else if player.has_equipt(*equipment) {
+            *color = Color::rgb(0.15, 0.45, 0.15).into();
+        } else {
+            *color = Color::rgb(0.15, 0.15, 0.15).into();
         }
     }
 }
 
-pub fn update_button_colours(
-    mut equipment_query: Query<(&Equipment, &mut UiColor), (With<Button>, Without<Element>)>,
-    mut element_query: Query<(&Element, &mut UiColor), (With<Button>, Without<Equipment>)>,
-    player_query: Query<&Player, Changed<Player>>,
+pub fn button_keyboard_select(
+    element_button_query: Query<(&Element, &BtnGridPos)>,
+    equipment_button_query: Query<(&Equipment, &BtnGridPos)>,
+    mut state: ResMut<AbilityMenuState>,
+    mut player_query: Query<&mut Player>,
+    keyboard_input: Res<Input<KeyCode>>,
 ) {
-    for player in player_query.iter() {
-        for (equipment, mut color) in equipment_query.iter_mut() {
-            if player.has_equipt(*equipment) {
-                *color = Color::rgb(0.15, 0.45, 0.15).into();
+    let mut player = player_query
+        .get_single_mut()
+        .expect("There should only be one player");
+    if keyboard_input.just_pressed(KeyCode::Down) {
+        state.selected_pos.row += 1;
+        if state.selected_pos.col == 0 {
+            if state.selected_pos.row >= player.num_equipment() {
+                state.selected_pos.row = 0;
+            }
+        } else if state.selected_pos.col == 1 && state.selected_pos.row >= player.num_elements() {
+            state.selected_pos.row = 0;
+        }
+    }
+    if keyboard_input.just_pressed(KeyCode::Up) {
+        if state.selected_pos.col == 0 {
+            if state.selected_pos.row == 0 {
+                state.selected_pos.row = player.num_equipment() - 1;
             } else {
-                *color = Color::rgb(0.15, 0.15, 0.15).into();
+                state.selected_pos.row -= 1;
+            }
+        } else if state.selected_pos.col == 1 && state.selected_pos.row == 0 {
+            state.selected_pos.row = player.num_elements() - 1;
+        } else {
+            state.selected_pos.row -= 1;
+        }
+    }
+    if (keyboard_input.just_pressed(KeyCode::Left) || keyboard_input.just_pressed(KeyCode::Right))
+        && player.num_elements() != 0
+    {
+        if state.selected_pos.col == 0 {
+            state.selected_pos.col = 1;
+        } else {
+            state.selected_pos.col = 0;
+        }
+    }
+    if keyboard_input.just_pressed(KeyCode::Z) {
+        for (element, grid_pos) in element_button_query.iter() {
+            if *grid_pos == state.selected_pos {
+                player.combination.1 = Some(*element);
+                return;
             }
         }
-        for (element, mut color) in element_query.iter_mut() {
-            if player.has_infused(*element) {
-                *color = Color::rgb(0.15, 0.45, 0.15).into();
-            } else {
-                *color = Color::rgb(0.15, 0.15, 0.15).into();
+        for (equipment, grid_pos) in equipment_button_query.iter() {
+            if *grid_pos == state.selected_pos {
+                player.combination.0 = Some(*equipment);
+                return;
             }
         }
     }
@@ -557,8 +634,9 @@ pub fn trigger_leave(
     mut physics_time: ResMut<PhysicsTime>,
     root_node: Query<Entity, With<UiRootNode>>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::Escape) {
+    if keyboard_input.just_pressed(KeyCode::X) {
         physics_time.set_scale(1.0);
+        commands.remove_resource::<AbilityMenuState>();
         for entity in root_node.iter() {
             commands.entity(entity).despawn_recursive();
         }

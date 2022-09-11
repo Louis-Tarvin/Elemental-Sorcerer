@@ -9,7 +9,7 @@ use bevy::{
 use bevy_ecs_ldtk::LdtkEntity;
 use heron::CollisionEvent;
 
-use crate::{physics::PhysicsObjectBundle, state::loading::GameAssets};
+use crate::{physics::PhysicsObjectBundle, state::load_game::GameAssets};
 
 use super::{player::Player, ProximityText};
 

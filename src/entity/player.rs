@@ -55,9 +55,9 @@ impl Player {
 
     pub fn get_combination_description(&self) -> &str {
         match self.combination {
-            (Some(Equipment::Staff), Some(Element::Fire)) => "Left click to cast Fireball",
-            (Some(Equipment::Staff), Some(Element::Air)) => "Left click to cast a gust of wind",
-            (Some(Equipment::Staff), Some(Element::Water)) => "Left click to summon water",
+            (Some(Equipment::Staff), Some(Element::Fire)) => "<x> to cast Fireball",
+            (Some(Equipment::Staff), Some(Element::Air)) => "<x> to cast a gust of wind",
+            (Some(Equipment::Staff), Some(Element::Water)) => "<x> to summon water",
             (Some(Equipment::MagicBoots), Some(Element::Fire)) => {
                 "Jump higher with an explosive kick"
             }
@@ -69,6 +69,33 @@ impl Player {
             (Some(Equipment::Cloak), Some(Element::Water)) => "Water resistance",
             _ => "No effect",
         }
+    }
+
+    /// Get the number of equipment unlocked (including staff)
+    pub fn num_equipment(&self) -> u8 {
+        let mut count = 1;
+        if self.unlocked_boots {
+            count += 1;
+        }
+        if self.unlocked_cloak {
+            count += 1;
+        }
+        count
+    }
+
+    /// Get the number of elements unlocked
+    pub fn num_elements(&self) -> u8 {
+        let mut count = 0;
+        if self.unlocked_fire {
+            count += 1;
+        }
+        if self.unlocked_air {
+            count += 1;
+        }
+        if self.unlocked_water {
+            count += 1;
+        }
+        count
     }
 }
 

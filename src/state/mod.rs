@@ -1,11 +1,13 @@
 pub mod ability_menu;
-pub mod loading;
+pub mod load_game;
+pub mod load_menu;
 pub mod main_menu;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum State {
+    LoadMenu,
     MainMenu,
-    Loading,
+    LoadGame,
     InGame,
     AbilityMenu,
 }

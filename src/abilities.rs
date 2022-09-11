@@ -21,7 +21,7 @@ use crate::{
     entity::{block::Block, lava::Lava, player::Player, Flamable},
     input::Controllable,
     physics::{PhysicsLayers, PhysicsObjectBundle},
-    state::loading::GameAssets,
+    state::load_game::GameAssets,
 };
 
 #[derive(Inspectable, Component, PartialEq, Eq, Clone, Copy)]

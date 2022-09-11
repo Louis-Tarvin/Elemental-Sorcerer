@@ -23,7 +23,7 @@ use crate::{
     destruction::DestructionTimer,
     entity::player::{AnimationState, Player},
     input::Controllable,
-    state::loading::GameAssets,
+    state::load_game::GameAssets,
 };
 
 #[derive(SystemLabel)]

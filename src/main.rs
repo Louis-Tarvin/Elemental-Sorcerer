@@ -1,10 +1,8 @@
-#![allow(clippy::type_complexity)]
-#![allow(clippy::too_many_arguments)]
+#![allow(clippy::type_complexity, clippy::too_many_arguments)]
 use audio::AudioAssets;
 use bevy::{
     prelude::{
-        App, Camera2dBundle, ClearColor, Color, Commands, ParallelSystemDescriptorCoercion, Res,
-        SystemSet, Transform, Vec3,
+        App, ClearColor, Color, Commands, ParallelSystemDescriptorCoercion, Res, SystemSet, Vec3,
     },
     render::texture::ImageSettings,
     window::WindowDescriptor,
@@ -32,7 +30,7 @@ use entity::{
 };
 use heron::{Gravity, PhysicsPlugin, PhysicsSystem};
 use input::Controllable;
-use state::{loading::GameAssets, State};
+use state::{load_game::GameAssets, load_menu::MenuAssets, State};
 
 mod abilities;
 mod animation;
@@ -54,7 +52,7 @@ fn main() {
 
     App::new()
         .insert_resource(ImageSettings::default_nearest())
-        .add_state(State::Loading)
+        .add_state(State::LoadMenu)
         .add_plugins(DefaultPlugins)
         .add_plugin(LdtkPlugin)
         .add_plugin(PhysicsPlugin::default())
@@ -82,15 +80,21 @@ fn main() {
         .add_startup_system(level::prevent_asset_unloading)
         .add_startup_system(debug::hide_at_startup)
         .add_loading_state(
-            LoadingState::new(State::Loading)
+            LoadingState::new(State::LoadGame)
                 .continue_to_state(State::InGame)
                 .with_collection::<GameAssets>()
                 .with_collection::<AudioAssets>(),
+        )
+        .add_loading_state(
+            LoadingState::new(State::LoadMenu)
+                .continue_to_state(State::MainMenu)
+                .with_collection::<MenuAssets>(),
         )
         .add_system_set(SystemSet::on_enter(State::MainMenu).with_system(state::main_menu::setup))
         .add_system_set(
             SystemSet::on_update(State::MainMenu).with_system(state::main_menu::button_system),
         )
+        .add_system_set(SystemSet::on_exit(State::MainMenu).with_system(state::main_menu::cleanup))
         .add_system_set(SystemSet::on_enter(State::InGame).with_system(setup))
         .add_system_set(
             SystemSet::on_update(State::InGame)
@@ -147,9 +151,9 @@ fn main() {
         .add_system_set(
             SystemSet::on_update(State::AbilityMenu)
                 .with_system(state::ability_menu::trigger_leave)
-                .with_system(state::ability_menu::equipment_button_system)
-                .with_system(state::ability_menu::element_button_system)
-                .with_system(state::ability_menu::update_button_colours)
+                .with_system(state::ability_menu::button_interaction_system)
+                .with_system(state::ability_menu::button_mouse_select)
+                .with_system(state::ability_menu::button_keyboard_select)
                 .with_system(state::ability_menu::update_text),
         )
         .register_ldtk_int_cell::<level::WallBundle>(1)
@@ -174,10 +178,6 @@ fn setup(
     audio: Res<Audio>,
     audio_assets: Res<AudioAssets>,
 ) {
-    commands.spawn_bundle(Camera2dBundle {
-        transform: Transform::from_xyz(0.0, 0.0, 900.0),
-        ..Default::default()
-    });
     commands.spawn_bundle(LdtkWorldBundle {
         ldtk_handle: game_assets.level.clone(),
         ..Default::default()
