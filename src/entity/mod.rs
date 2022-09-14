@@ -197,8 +197,8 @@ impl From<EntityInstance> for ProximityText {
                 }
             }
             "Checkpoint" => ProximityText {
-                text: "Checkpoint saved.\nPress <E> to combine".into(),
-                width: 125.0,
+                text: "Checkpoint saved.\nPress <down> to interact".into(),
+                width: 165.0,
                 color: Color::GRAY,
             },
             "Trophy" => ProximityText {

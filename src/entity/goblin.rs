@@ -95,6 +95,7 @@ impl LdtkEntity for Patrol {
 pub enum AnimationState {
     Idle,
     Walking,
+    Death,
 }
 impl Default for AnimationState {
     fn default() -> Self {
@@ -120,16 +121,18 @@ pub struct GoblinBundle {
     pub patrol: Patrol,
 }
 
-pub fn patrol(
-    mut query: Query<(
-        &Patrol,
-        &mut Velocity,
-        &Transform,
-        &mut TextureAtlasSprite,
-        &mut AnimationState,
-    )>,
-) {
-    for (patrol, mut velocity, transform, mut sprite, mut state) in query.iter_mut() {
+pub fn init_animation_state(mut query: Query<(&Patrol, &mut AnimationState), Added<Patrol>>) {
+    for (patrol, mut state) in query.iter_mut() {
+        if patrol.points.is_some() {
+            *state = AnimationState::Walking;
+        } else {
+            *state = AnimationState::Idle;
+        }
+    }
+}
+
+pub fn patrol(mut query: Query<(&Patrol, &mut Velocity, &Transform, &mut TextureAtlasSprite)>) {
+    for (patrol, mut velocity, transform, mut sprite) in query.iter_mut() {
         if let Some((start, end)) = patrol.points {
             if transform.translation.x < start.x.min(end.x) || velocity.linear.x == 0.0 {
                 velocity.linear.x = patrol.movement_speed;
@@ -138,15 +141,17 @@ pub fn patrol(
                 velocity.linear.x = -patrol.movement_speed;
                 sprite.flip_x = true;
             }
-            *state = AnimationState::Walking;
         }
     }
 }
 
 pub fn animation_state_update(
-    mut query: Query<(&mut Animated, &AnimationState), Changed<AnimationState>>,
+    mut query: Query<
+        (&mut Animated, &AnimationState, &mut TextureAtlasSprite),
+        Changed<AnimationState>,
+    >,
 ) {
-    for (mut animation, state) in query.iter_mut() {
+    for (mut animation, state, mut atlas) in query.iter_mut() {
         match state {
             AnimationState::Idle => {
                 animation.start = 18;
@@ -156,7 +161,13 @@ pub fn animation_state_update(
                 animation.start = 0;
                 animation.end = 6;
             }
+            AnimationState::Death => {
+                animation.start = 6;
+                animation.end = 12;
+                animation.play_once = true;
+            }
         }
+        atlas.index = animation.start;
     }
 }
 

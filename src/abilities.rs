@@ -3,7 +3,7 @@ use std::fmt::Display;
 use bevy::{
     prelude::{
         Assets, Commands, Component, DespawnRecursiveExt, Entity, EventReader, GlobalTransform,
-        Mut, Query, Res, ResMut, Transform, Vec2, Vec3, With, Without,
+        Query, Res, ResMut, Transform, Vec2, Vec3, With, Without,
     },
     sprite::{Sprite, SpriteBundle, SpriteSheetBundle, TextureAtlas, TextureAtlasSprite},
     time::{Time, Timer},
@@ -17,8 +17,15 @@ use heron::{
 use crate::{
     animation::Animated,
     audio::AudioAssets,
+    damage::Hurtbox,
     destruction::DestructionTimer,
-    entity::{block::Block, lava::Lava, player::Player, Flamable},
+    entity::{
+        block::Block,
+        goblin::{AnimationState, Patrol},
+        lava::Lava,
+        player::Player,
+        Flamable,
+    },
     input::Controllable,
     physics::{PhysicsLayers, PhysicsObjectBundle},
     state::load_game::GameAssets,
@@ -57,11 +64,11 @@ impl Display for Element {
 }
 
 #[derive(Component)]
-pub enum Projectile {
-    Fireball,
-    Wind,
-    Water,
-}
+pub struct FireProjectile;
+#[derive(Component)]
+pub struct WindProjectile;
+#[derive(Component)]
+pub struct WaterProjectile;
 
 pub fn use_ability(
     time: Res<Time>,
@@ -103,7 +110,7 @@ pub fn use_ability(
                         ..Default::default()
                     })
                     .insert(Animated::new(0.05, 0, 4, false))
-                    .insert(Projectile::Fireball)
+                    .insert(FireProjectile)
                     .insert(DestructionTimer(Timer::from_seconds(0.6, false)))
                     .insert_bundle(PhysicsObjectBundle {
                         collider: CollisionShape::Cuboid {
@@ -149,7 +156,7 @@ pub fn use_ability(
                         ..Default::default()
                     })
                     .insert(Animated::new(0.1, 0, 5, false))
-                    .insert(Projectile::Wind)
+                    .insert(WindProjectile)
                     .insert(DestructionTimer(Timer::from_seconds(0.6, false)))
                     .insert_bundle(PhysicsObjectBundle {
                         collider: CollisionShape::Cuboid {
@@ -191,7 +198,7 @@ pub fn use_ability(
                         sprite: projectile_sprite,
                         ..Default::default()
                     })
-                    .insert(Projectile::Water)
+                    .insert(WaterProjectile)
                     .insert_bundle(PhysicsObjectBundle {
                         collider: CollisionShape::Sphere { radius: 4.0 },
                         rb: RigidBody::Dynamic,
@@ -214,95 +221,106 @@ pub fn use_ability(
     }
 }
 
-pub fn projectile_collision(
+pub fn fire_projectile_collision(
     mut commands: Commands,
-    mut projectiles: Query<
-        (&Projectile, &Velocity, &mut CollisionLayers),
-        (Without<Block>, Without<Lava>),
-    >,
-    flamables: Query<(Entity, &Flamable)>,
-    mut blocks: Query<&mut Velocity, (With<Block>, Without<Projectile>)>,
-    mut lava: Query<
-        (Entity, &mut Animated, &mut RigidBody, &mut CollisionLayers),
-        (With<Lava>, Without<Projectile>),
-    >,
+    fireballs: Query<Entity, (With<FireProjectile>, Without<Block>, Without<Lava>)>,
+    flamables: Query<Entity, With<Flamable>>,
+    mut goblins: Query<(&mut AnimationState, &mut Velocity, &mut Patrol)>,
     mut collisions: EventReader<CollisionEvent>,
     audio: Res<Audio>,
-    audio_manager: Res<AudioAssets>,
+    audio_assets: Res<AudioAssets>,
 ) {
-    // Should probably split this into multiple systems
-
     for event in collisions.iter().filter(|e| e.is_started()) {
         let (e1, e2) = event.rigid_body_entities();
-        if let Ok((projectile, projectile_velocity, layers)) = projectiles.get_mut(e1) {
+        if fireballs.contains(e1) {
             // entity 1 is projectile
-            resolve_projectile_collision(
-                &mut commands,
-                projectile,
-                projectile_velocity,
-                layers,
-                e1,
-                e2,
-                &flamables,
-                &mut blocks,
-                &mut lava,
-                &audio,
-                &audio_manager,
-            );
-        } else if let Ok((projectile, projectile_velocity, layers)) = projectiles.get_mut(e2) {
+            if let Ok((mut state, mut velocity, mut patrol)) = goblins.get_mut(e2) {
+                commands.entity(e1).despawn_recursive();
+                audio.play(audio_assets.hurt.clone());
+                // play goblin death animation
+                *state = AnimationState::Death;
+                patrol.movement_speed = 0.0;
+                velocity.linear.x = 0.0;
+                commands
+                    .entity(e2)
+                    .remove::<Hurtbox>()
+                    .remove::<RigidBody>()
+                    .insert(DestructionTimer(Timer::from_seconds(0.6, false)));
+            } else if flamables.contains(e2) {
+                // despawn
+                commands.entity(e2).despawn_recursive();
+                commands.entity(e1).despawn_recursive();
+                audio.play(audio_assets.hurt.clone());
+            }
+        } else if fireballs.contains(e2) {
             // entity 2 is projectile
-            resolve_projectile_collision(
-                &mut commands,
-                projectile,
-                projectile_velocity,
-                layers,
-                e2,
-                e1,
-                &flamables,
-                &mut blocks,
-                &mut lava,
-                &audio,
-                &audio_manager,
-            );
+            if let Ok((mut state, mut velocity, mut patrol)) = goblins.get_mut(e1) {
+                commands.entity(e2).despawn_recursive();
+                audio.play(audio_assets.hurt.clone());
+                // play goblin death animation
+                *state = AnimationState::Death;
+                patrol.movement_speed = 0.0;
+                velocity.linear.x = 0.0;
+                commands
+                    .entity(e1)
+                    .remove::<Hurtbox>()
+                    .remove::<RigidBody>()
+                    .insert(DestructionTimer(Timer::from_seconds(0.6, false)));
+            } else if flamables.contains(e1) {
+                // despawn
+                commands.entity(e2).despawn_recursive();
+                commands.entity(e1).despawn_recursive();
+                audio.play(audio_assets.hurt.clone());
+            }
         }
     }
 }
 
-fn resolve_projectile_collision(
-    commands: &mut Commands,
-    projectile: &Projectile,
-    projectile_velocity: &Velocity,
-    mut layers: Mut<CollisionLayers>,
-    projectile_entity: Entity,
-    other: Entity,
-    flamables: &Query<(Entity, &Flamable)>,
-    blocks: &mut Query<&mut Velocity, (With<Block>, Without<Projectile>)>,
-    lava: &mut Query<
-        (Entity, &mut Animated, &mut RigidBody, &mut CollisionLayers),
-        (With<Lava>, Without<Projectile>),
+pub fn wind_projectile_collision(
+    mut projectiles: Query<
+        (&Velocity, &mut CollisionLayers),
+        (With<WindProjectile>, Without<Block>),
     >,
-    audio: &Res<Audio>,
-    audio_manager: &Res<AudioAssets>,
+    mut blocks: Query<&mut Velocity, (With<Block>, Without<FireProjectile>)>,
+    mut collisions: EventReader<CollisionEvent>,
 ) {
-    match projectile {
-        Projectile::Fireball => {
-            if flamables.get(other).is_ok() {
-                // despawn
-                commands.entity(other).despawn_recursive();
-                commands.entity(projectile_entity).despawn_recursive();
-                audio.play(audio_manager.hurt.clone());
+    for event in collisions.iter().filter(|e| e.is_started()) {
+        let (e1, e2) = event.rigid_body_entities();
+        if let Ok((projectile_velocity, mut layers)) = projectiles.get_mut(e1) {
+            // entity 1 is projectile
+            if let Ok(mut velocity) = blocks.get_mut(e2) {
+                // push
+                velocity.linear = projectile_velocity.linear;
+                *layers = layers.without_mask(PhysicsLayers::Movable);
             }
-        }
-        Projectile::Wind => {
-            if let Ok(mut velocity) = blocks.get_mut(other) {
+        } else if let Ok((projectile_velocity, mut layers)) = projectiles.get_mut(e2) {
+            // entity 2 is projectile
+            if let Ok(mut velocity) = blocks.get_mut(e1) {
                 // push
                 velocity.linear = projectile_velocity.linear;
                 *layers = layers.without_mask(PhysicsLayers::Movable);
             }
         }
-        Projectile::Water => {
-            commands.entity(projectile_entity).despawn();
-            if let Ok((entity, mut animation, mut rb, mut layers)) = lava.get_mut(other) {
+    }
+}
+
+pub fn water_projectile_collision(
+    mut commands: Commands,
+    projectiles: Query<Entity, With<WaterProjectile>>,
+    mut lava: Query<
+        (Entity, &mut Animated, &mut RigidBody, &mut CollisionLayers),
+        (With<Lava>, Without<WaterProjectile>),
+    >,
+    mut collisions: EventReader<CollisionEvent>,
+    audio: Res<Audio>,
+    audio_assets: Res<AudioAssets>,
+) {
+    for event in collisions.iter().filter(|e| e.is_started()) {
+        let (e1, e2) = event.rigid_body_entities();
+        if projectiles.contains(e1) {
+            // entity 1 is projectile
+            commands.entity(e1).despawn();
+            if let Ok((entity, mut animation, mut rb, mut layers)) = lava.get_mut(e2) {
                 // turn lava to stone
                 animation.start = 8;
                 animation.end = 9;
@@ -313,7 +331,23 @@ fn resolve_projectile_collision(
                 if !layers.contains_group(PhysicsLayers::Terrain) {
                     *layers = layers.with_group(PhysicsLayers::Terrain);
                 }
-                audio.play(audio_manager.steam.clone());
+                audio.play(audio_assets.steam.clone());
+            }
+        } else if projectiles.contains(e2) {
+            // entity 2 is projectile
+            commands.entity(e2).despawn();
+            if let Ok((entity, mut animation, mut rb, mut layers)) = lava.get_mut(e1) {
+                // turn lava to stone
+                animation.start = 8;
+                animation.end = 9;
+                if *rb != RigidBody::Static {
+                    *rb = RigidBody::Static;
+                }
+                commands.entity(entity).remove::<Lava>();
+                if !layers.contains_group(PhysicsLayers::Terrain) {
+                    *layers = layers.with_group(PhysicsLayers::Terrain);
+                }
+                audio.play(audio_assets.steam.clone());
             }
         }
     }

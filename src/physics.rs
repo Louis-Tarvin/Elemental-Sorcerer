@@ -162,7 +162,7 @@ pub fn handle_controllables(
                 let max_speed = if player.has_equipt(Equipment::MagicBoots)
                     && player.has_infused(Element::Water)
                 {
-                    max_speed * 1.5
+                    max_speed * 2.0
                 } else {
                     max_speed
                 };

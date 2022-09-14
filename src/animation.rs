@@ -9,7 +9,7 @@ pub struct Animated {
     timer: Timer,
     pub start: usize,
     pub end: usize,
-    play_once: bool,
+    pub play_once: bool,
 }
 impl Animated {
     pub fn new(seconds_per_frame: f32, start: usize, end: usize, play_once: bool) -> Self {

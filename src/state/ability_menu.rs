@@ -65,12 +65,15 @@ pub fn setup(
     game_assets: Res<GameAssets>,
     player: Query<&Player>,
     debug_settings: Res<DebugSettings>,
+    mut input: ResMut<Input<KeyCode>>,
 ) {
-    commands.insert_resource(AbilityMenuState::default());
-
     let player = player
         .get_single()
         .expect("There should only be one player");
+
+    input.clear(); // clear any `just_pressed` events that may be left over from previous state
+
+    commands.insert_resource(AbilityMenuState::default());
 
     let button_style = Style {
         size: Size::new(Val::Px(195.0), Val::Px(65.0)),
@@ -445,19 +448,19 @@ pub fn button_interaction_system(
     mut player_query: Query<&mut Player>,
     mut state: ResMut<AbilityMenuState>,
     audio: Res<Audio>,
-    audio_manager: Res<AudioAssets>,
+    audio_assets: Res<AudioAssets>,
 ) {
     for (interaction, element, grid_pos) in &element_button_query {
         match *interaction {
             Interaction::Clicked => {
-                audio.play(audio_manager.blip2.clone());
+                audio.play(audio_assets.blip2.clone());
                 for mut player in player_query.iter_mut() {
                     player.combination.1 = Some(*element);
                 }
             }
             Interaction::Hovered => {
                 state.selected_pos = *grid_pos;
-                audio.play(audio_manager.blip1.clone());
+                audio.play(audio_assets.blip1.clone());
             }
             _ => {}
         }
@@ -465,14 +468,14 @@ pub fn button_interaction_system(
     for (interaction, equipment, grid_pos) in &equipment_button_query {
         match *interaction {
             Interaction::Clicked => {
-                audio.play(audio_manager.blip2.clone());
+                audio.play(audio_assets.blip2.clone());
                 for mut player in player_query.iter_mut() {
                     player.combination.0 = Some(*equipment);
                 }
             }
             Interaction::Hovered => {
                 state.selected_pos = *grid_pos;
-                audio.play(audio_manager.blip1.clone());
+                audio.play(audio_assets.blip1.clone());
             }
             _ => {}
         }
@@ -527,11 +530,14 @@ pub fn button_keyboard_select(
     mut state: ResMut<AbilityMenuState>,
     mut player_query: Query<&mut Player>,
     keyboard_input: Res<Input<KeyCode>>,
+    audio: Res<Audio>,
+    audio_assets: Res<AudioAssets>,
 ) {
     let mut player = player_query
         .get_single_mut()
         .expect("There should only be one player");
     if keyboard_input.just_pressed(KeyCode::Down) {
+        audio.play(audio_assets.blip1.clone());
         state.selected_pos.row += 1;
         if state.selected_pos.col == 0 {
             if state.selected_pos.row >= player.num_equipment() {
@@ -542,6 +548,7 @@ pub fn button_keyboard_select(
         }
     }
     if keyboard_input.just_pressed(KeyCode::Up) {
+        audio.play(audio_assets.blip1.clone());
         if state.selected_pos.col == 0 {
             if state.selected_pos.row == 0 {
                 state.selected_pos.row = player.num_equipment() - 1;
@@ -557,6 +564,7 @@ pub fn button_keyboard_select(
     if (keyboard_input.just_pressed(KeyCode::Left) || keyboard_input.just_pressed(KeyCode::Right))
         && player.num_elements() != 0
     {
+        audio.play(audio_assets.blip1.clone());
         if state.selected_pos.col == 0 {
             state.selected_pos.col = 1;
         } else {
@@ -564,6 +572,7 @@ pub fn button_keyboard_select(
         }
     }
     if keyboard_input.just_pressed(KeyCode::Z) {
+        audio.play(audio_assets.blip2.clone());
         for (element, grid_pos) in element_button_query.iter() {
             if *grid_pos == state.selected_pos {
                 player.combination.1 = Some(*element);
@@ -629,7 +638,7 @@ pub fn update_text(
 
 pub fn trigger_leave(
     mut commands: Commands,
-    keyboard_input: Res<Input<KeyCode>>,
+    mut keyboard_input: ResMut<Input<KeyCode>>,
     mut app_state: ResMut<bevy::prelude::State<State>>,
     mut physics_time: ResMut<PhysicsTime>,
     root_node: Query<Entity, With<UiRootNode>>,
@@ -640,6 +649,7 @@ pub fn trigger_leave(
         for entity in root_node.iter() {
             commands.entity(entity).despawn_recursive();
         }
+        keyboard_input.clear();
         app_state.pop().unwrap();
     }
 }

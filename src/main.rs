@@ -28,7 +28,7 @@ use entity::{
     trophy::TrophyBundle,
     water::WaterBundle,
 };
-use heron::{Gravity, PhysicsPlugin, PhysicsSystem};
+use heron::{Gravity, PhysicsPlugin};
 use input::Controllable;
 use state::{load_game::GameAssets, load_menu::MenuAssets, State};
 
@@ -66,6 +66,7 @@ fn main() {
             width: 1280.,
             height: 720.,
             title: "Elemental Sorcerer".to_string(),
+            fit_canvas_to_parent: true,
             ..Default::default()
         })
         .insert_resource(DebugSettings::default())
@@ -117,12 +118,13 @@ fn main() {
                 .with_system(
                     physics::handle_controllables
                         .label(physics::PhysicsLabel::HandleControllables)
-                        .after(physics::PhysicsLabel::CheckGrounded)
-                        .before(PhysicsSystem::TransformUpdate),
+                        .after(physics::PhysicsLabel::CheckGrounded),
                 )
                 .with_system(state::ability_menu::trigger_enter)
                 .with_system(abilities::use_ability)
-                .with_system(abilities::projectile_collision)
+                .with_system(abilities::fire_projectile_collision)
+                .with_system(abilities::wind_projectile_collision)
+                .with_system(abilities::water_projectile_collision)
                 .with_system(damage::detect)
                 .with_system(damage::kill.after(physics::PhysicsLabel::HandleControllables))
                 .with_system(damage::respawn)
@@ -132,6 +134,7 @@ fn main() {
                 )
                 .with_system(entity::player::set_spawn)
                 .with_system(entity::goblin::patrol)
+                .with_system(entity::goblin::init_animation_state)
                 .with_system(entity::goblin::animation_state_update)
                 .with_system(entity::goblin::face_direction)
                 .with_system(entity::ability::check_near)
@@ -184,6 +187,6 @@ fn setup(
     });
     audio
         .play(audio_assets.bgm.clone())
-        .with_volume(0.1)
+        .with_volume(0.5)
         .looped();
 }
