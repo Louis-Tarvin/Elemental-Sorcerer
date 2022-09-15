@@ -1,5 +1,24 @@
-use bevy::prelude::{Input, KeyCode, Res, ResMut};
-use bevy_inspector_egui::{plugin::InspectorWindows, Inspectable, WorldInspectorParams};
+use bevy::prelude::{Input, KeyCode, Plugin, Res, ResMut, SystemSet};
+use bevy_inspector_egui::{
+    plugin::InspectorWindows, Inspectable, InspectorPlugin, RegisterInspectable,
+    WorldInspectorParams, WorldInspectorPlugin,
+};
+
+use crate::{entity::player::Player, input::Controllable, state::State};
+
+pub struct DebugPlugin;
+
+impl Plugin for DebugPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_plugin(WorldInspectorPlugin::new())
+            .add_plugin(InspectorPlugin::<DebugSettings>::new())
+            .register_inspectable::<Controllable>()
+            .register_inspectable::<Player>()
+            .insert_resource(DebugSettings::default())
+            .add_startup_system(hide_at_startup)
+            .add_system_set(SystemSet::on_update(State::InGame).with_system(toggle_inspector));
+    }
+}
 
 #[derive(Debug, Default, Inspectable)]
 pub struct DebugSettings {
@@ -9,7 +28,7 @@ pub struct DebugSettings {
     pub unlock_all_abilities: bool,
 }
 
-pub fn toggle_inspector(
+fn toggle_inspector(
     input: Res<Input<KeyCode>>,
     mut world_inspector_params: ResMut<WorldInspectorParams>,
     mut inspector_windows: ResMut<InspectorWindows>,
@@ -21,7 +40,7 @@ pub fn toggle_inspector(
     }
 }
 
-pub fn hide_at_startup(
+fn hide_at_startup(
     mut world_inspector_params: ResMut<WorldInspectorParams>,
     mut inspector_windows: ResMut<InspectorWindows>,
 ) {

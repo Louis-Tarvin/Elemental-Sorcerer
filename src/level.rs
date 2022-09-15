@@ -2,22 +2,73 @@ use std::collections::{HashMap, HashSet};
 
 use bevy::prelude::{
     Added, AssetServer, Assets, BuildChildren, Bundle, Commands, Component, Entity, EventReader,
-    GlobalTransform, Handle, Image, Input, KeyCode, Parent, Query, Res, ResMut, Transform, Vec2,
-    Vec3, With, Without,
+    GlobalTransform, Handle, Image, Input, KeyCode, Parent, Plugin, Query, Res, ResMut, SystemSet,
+    Transform, Vec2, Vec3, With, Without,
 };
 use bevy_ecs_ldtk::{
-    prelude::LayerInstance, GridCoords, LdtkIntCell, LdtkLevel, LevelEvent, LevelSelection, Respawn,
+    prelude::{LayerInstance, RegisterLdtkObjects},
+    GridCoords, LdtkIntCell, LdtkLevel, LdtkSettings, LevelEvent, LevelSelection,
+    LevelSpawnBehavior, Respawn,
 };
-use heron::{CollisionLayers, CollisionShape, PhysicMaterial, PhysicsTime, RigidBody};
+use heron::{CollisionLayers, CollisionShape, Gravity, PhysicMaterial, PhysicsTime, RigidBody};
 
 use crate::{
     damage::Hurtbox,
-    entity::player::Player,
+    entity::{
+        ability::AbilityBundle,
+        block::{BlockBundle, WoodBlockBundle},
+        checkpoint::CheckpointBundle,
+        goblin::GoblinBundle,
+        lava::LavaBundle,
+        player::{Player, PlayerBundle},
+        signpost::SignpostBundle,
+        torch::TorchBundle,
+        trophy::TrophyBundle,
+        water::WaterBundle,
+    },
     physics::{GroundDetector, PhysicsLayers},
+    state::State,
 };
 
+pub struct LevelPlugin;
+
+impl Plugin for LevelPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.insert_resource(LevelSelection::Index(1))
+            .insert_resource(LdtkSettings {
+                level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
+                    load_level_neighbors: true,
+                },
+                ..Default::default()
+            })
+            .insert_resource(Gravity::from(Vec3::new(0.0, -500.0, 0.0)))
+            .add_startup_system(prevent_asset_unloading)
+            .add_system_set(
+                SystemSet::on_update(State::InGame)
+                    .with_system(spawn_wall_collision)
+                    .with_system(spawn_spike_collision)
+                    .with_system(update_level_selection)
+                    .with_system(pause_physics_during_load)
+                    .with_system(restart_level),
+            )
+            .register_ldtk_int_cell::<WallBundle>(1)
+            .register_ldtk_int_cell::<SpikeBundle>(2)
+            .register_ldtk_entity::<PlayerBundle>("Player")
+            .register_ldtk_entity::<CheckpointBundle>("Checkpoint")
+            .register_ldtk_entity::<SignpostBundle>("Signpost")
+            .register_ldtk_entity::<AbilityBundle>("Ability")
+            .register_ldtk_entity::<GoblinBundle>("Goblin")
+            .register_ldtk_entity::<BlockBundle>("Block")
+            .register_ldtk_entity::<WoodBlockBundle>("WoodBlock")
+            .register_ldtk_entity::<LavaBundle>("Lava")
+            .register_ldtk_entity::<WaterBundle>("Water")
+            .register_ldtk_entity::<TorchBundle>("Torch")
+            .register_ldtk_entity::<TrophyBundle>("Trophy");
+    }
+}
+
 /// This function was copied from the example in bevy_ecs_ldtk. All credit goes to the author
-pub fn update_level_selection(
+fn update_level_selection(
     level_query: Query<(&Handle<LdtkLevel>, &Transform), Without<Player>>,
     player_query: Query<&Transform, With<Player>>,
     mut level_selection: ResMut<LevelSelection>,
@@ -47,10 +98,10 @@ pub fn update_level_selection(
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
-pub struct Wall;
+struct Wall;
 
 #[derive(Clone, Debug, Default, Bundle, LdtkIntCell)]
-pub struct WallBundle {
+struct WallBundle {
     wall: Wall,
 }
 
@@ -71,7 +122,7 @@ pub struct WallBundle {
 /// 2. combine wall tiles into flat "plates" in each individual row
 /// 3. combine the plates into rectangles across multiple rows wherever possible
 /// 4. spawn colliders for each rectangle
-pub fn spawn_wall_collision(
+fn spawn_wall_collision(
     mut commands: Commands,
     wall_query: Query<(&GridCoords, &Parent), Added<Wall>>,
     parent_query: Query<&Parent, Without<Wall>>,
@@ -242,7 +293,7 @@ pub fn spawn_wall_collision(
     }
 }
 
-pub fn restart_level(
+fn restart_level(
     mut commands: Commands,
     level_query: Query<Entity, With<Handle<LdtkLevel>>>,
     mut player_query: Query<(&mut Transform, &Player)>,
@@ -267,7 +318,7 @@ pub fn restart_level(
 
 /// Prevents entity sprites from dissapearing upon reload
 /// See: https://github.com/Trouv/bevy_ecs_ldtk/issues/111
-pub fn prevent_asset_unloading(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn prevent_asset_unloading(mut commands: Commands, asset_server: Res<AssetServer>) {
     #[derive(Component)]
     struct LdtkImageHolder(Handle<Image>);
     for asset in ["block", "signpost", "wood_block", "trophy"].iter() {
@@ -278,15 +329,15 @@ pub fn prevent_asset_unloading(mut commands: Commands, asset_server: Res<AssetSe
 }
 
 #[derive(Component, Default)]
-pub struct Spike;
+struct Spike;
 
 #[derive(Bundle, LdtkIntCell)]
-pub struct SpikeBundle {
+struct SpikeBundle {
     pub hurtbox: Hurtbox,
     pub spike: Spike,
 }
 
-pub fn spawn_spike_collision(
+fn spawn_spike_collision(
     mut commands: Commands,
     spike_query: Query<(&GridCoords, &Parent), Added<Spike>>,
     parent_query: Query<&Parent, Without<Spike>>,
@@ -412,7 +463,7 @@ pub fn spawn_spike_collision(
 }
 
 /// This function was copied from the example in bevy_ecs_ldtk. All credit goes to the author
-pub fn pause_physics_during_load(
+fn pause_physics_during_load(
     mut level_events: EventReader<LevelEvent>,
     mut physics_time: ResMut<PhysicsTime>,
 ) {

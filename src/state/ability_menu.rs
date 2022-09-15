@@ -1,8 +1,8 @@
 use bevy::{
     prelude::{
         BuildChildren, Button, ButtonBundle, Changed, Color, Commands, Component,
-        DespawnRecursiveExt, Entity, Input, KeyCode, NodeBundle, Query, Res, ResMut, TextBundle,
-        With, Without,
+        DespawnRecursiveExt, Entity, Input, KeyCode, NodeBundle, Plugin, Query, Res, ResMut,
+        SystemSet, TextBundle, With, Without,
     },
     text::{Text, TextStyle},
     ui::{
@@ -22,17 +22,34 @@ use crate::{
 
 use super::{load_game::GameAssets, State};
 
+pub struct AbilityMenuPlugin;
+
+impl Plugin for AbilityMenuPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_system_set(SystemSet::on_update(State::InGame).with_system(trigger_enter))
+            .add_system_set(SystemSet::on_enter(State::AbilityMenu).with_system(setup))
+            .add_system_set(
+                SystemSet::on_update(State::AbilityMenu)
+                    .with_system(trigger_leave)
+                    .with_system(button_interaction_system)
+                    .with_system(button_mouse_select)
+                    .with_system(button_keyboard_select)
+                    .with_system(update_text),
+            );
+    }
+}
+
 #[derive(Component)]
-pub struct UiRootNode;
+struct UiRootNode;
 #[derive(Component)]
-pub struct Slot1Text;
+struct Slot1Text;
 #[derive(Component)]
-pub struct Slot2Text;
+struct Slot2Text;
 #[derive(Component)]
-pub struct CombinationText;
+struct CombinationText;
 
 #[derive(Component, Default, PartialEq, Eq, Clone, Copy)]
-pub struct BtnGridPos {
+struct BtnGridPos {
     pub row: u8,
     pub col: u8,
 }
@@ -43,11 +60,11 @@ impl BtnGridPos {
 }
 
 #[derive(Default)]
-pub struct AbilityMenuState {
+struct AbilityMenuState {
     pub selected_pos: BtnGridPos,
 }
 
-pub fn trigger_enter(
+fn trigger_enter(
     mut app_state: ResMut<bevy::prelude::State<State>>,
     query: Query<(&Controllable, &Player), Changed<Controllable>>,
     mut physics_time: ResMut<PhysicsTime>,
@@ -60,7 +77,7 @@ pub fn trigger_enter(
     }
 }
 
-pub fn setup(
+fn setup(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
     player: Query<&Player>,
@@ -436,7 +453,7 @@ pub fn setup(
         .insert(UiRootNode);
 }
 
-pub fn button_interaction_system(
+fn button_interaction_system(
     element_button_query: Query<
         (&Interaction, &Element, &BtnGridPos),
         (With<Button>, Changed<Interaction>),
@@ -481,7 +498,7 @@ pub fn button_interaction_system(
         }
     }
 }
-pub fn button_mouse_select(
+fn button_mouse_select(
     mut element_button_query: Query<
         (&Element, &BtnGridPos, &mut UiColor),
         (With<Button>, Without<Equipment>),
@@ -524,7 +541,7 @@ pub fn button_mouse_select(
     }
 }
 
-pub fn button_keyboard_select(
+fn button_keyboard_select(
     element_button_query: Query<(&Element, &BtnGridPos)>,
     equipment_button_query: Query<(&Equipment, &BtnGridPos)>,
     mut state: ResMut<AbilityMenuState>,
@@ -588,7 +605,7 @@ pub fn button_keyboard_select(
     }
 }
 
-pub fn update_text(
+fn update_text(
     player_query: Query<&Player, Changed<Player>>,
     mut slot_1: Query<
         &mut Text,
@@ -636,7 +653,7 @@ pub fn update_text(
     }
 }
 
-pub fn trigger_leave(
+fn trigger_leave(
     mut commands: Commands,
     mut keyboard_input: ResMut<Input<KeyCode>>,
     mut app_state: ResMut<bevy::prelude::State<State>>,
