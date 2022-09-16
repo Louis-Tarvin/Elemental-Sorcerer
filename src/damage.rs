@@ -10,7 +10,7 @@ use bevy_kira_audio::{Audio, AudioControl};
 use heron::{CollisionEvent, Velocity};
 
 use crate::{
-    audio::AudioAssets,
+    audio::{AudioAssets, VolumeSettings},
     debug::DebugSettings,
     entity::player::{AnimationState, Player},
     input::Controllable,
@@ -59,6 +59,7 @@ pub fn kill(
     killed: Query<Entity, Added<Killed>>,
     audio: Res<Audio>,
     audio_assets: Res<AudioAssets>,
+    volume_settings: Res<VolumeSettings>,
 ) {
     for entity in killed.iter() {
         if let Ok((player_entity, mut state, mut velocity)) = player.get_mut(entity) {
@@ -69,7 +70,9 @@ pub fn kill(
                 .entity(player_entity)
                 .remove::<Controllable>()
                 .insert(RespawnTimer(Timer::from_seconds(0.6, false)));
-            audio.play(audio_assets.death.clone());
+            audio
+                .play(audio_assets.death.clone())
+                .with_volume(volume_settings.sfx_vol);
         }
     }
 }

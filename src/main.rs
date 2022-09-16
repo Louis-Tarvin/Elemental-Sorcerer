@@ -33,6 +33,7 @@ fn main() {
     console_error_panic_hook::set_once();
 
     App::new()
+        .insert_resource(ImageSettings::default_nearest())
         .add_state(State::LoadMenu)
         .add_plugins(DefaultPlugins)
         .add_plugin(MainMenuPlugin)
@@ -43,7 +44,6 @@ fn main() {
         .add_plugin(LdtkPlugin)
         .add_plugin(PhysicsPlugin::default())
         .add_plugin(AudioPlugin)
-        .insert_resource(ImageSettings::default_nearest())
         .insert_resource(ClearColor(Color::rgb(0.133, 0.122, 0.192)))
         .insert_resource(WindowDescriptor {
             width: 1280.,

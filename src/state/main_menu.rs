@@ -10,6 +10,9 @@ use bevy::{
     },
 };
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
+use bevy_kira_audio::{Audio, AudioControl};
+
+use crate::audio::{AudioAssets, VolumeSettings};
 
 use super::{load_menu::MenuAssets, State};
 
@@ -20,7 +23,8 @@ impl Plugin for MainMenuPlugin {
         app.add_loading_state(
             LoadingState::new(State::LoadMenu)
                 .continue_to_state(State::MainMenu)
-                .with_collection::<MenuAssets>(),
+                .with_collection::<MenuAssets>()
+                .with_collection::<AudioAssets>(),
         )
         .add_system_set(SystemSet::on_enter(State::MainMenu).with_system(setup))
         .add_system_set(SystemSet::on_update(State::MainMenu).with_system(button_system))
@@ -34,15 +38,27 @@ struct MainMenu;
 #[derive(Component)]
 enum MenuButton {
     Start,
-    // Sound,
-    // Music,
+    Sound,
+    Music,
 }
 
 fn setup(mut commands: Commands, menu_assets: Res<MenuAssets>) {
+    commands.insert_resource(VolumeSettings::default());
+
     commands.spawn_bundle(Camera2dBundle {
         transform: Transform::from_xyz(0.0, 0.0, 900.0),
         ..Default::default()
     });
+    let button_style = Style {
+        size: Size::new(Val::Px(195.0), Val::Px(65.0)),
+        // center button
+        margin: UiRect::all(Val::Px(20.0)),
+        // horizontally center child text
+        justify_content: JustifyContent::Center,
+        // vertically center child text
+        align_items: AlignItems::Center,
+        ..Default::default()
+    };
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
@@ -107,16 +123,7 @@ fn setup(mut commands: Commands, menu_assets: Res<MenuAssets>) {
                 .with_children(|parent| {
                     parent
                         .spawn_bundle(ButtonBundle {
-                            style: Style {
-                                size: Size::new(Val::Px(195.0), Val::Px(65.0)),
-                                // center button
-                                margin: UiRect::all(Val::Px(20.0)),
-                                // horizontally center child text
-                                justify_content: JustifyContent::Center,
-                                // vertically center child text
-                                align_items: AlignItems::Center,
-                                ..Default::default()
-                            },
+                            style: button_style.clone(),
                             image: menu_assets.button.clone().into(),
                             color: Color::rgb(0.15, 0.15, 0.15).into(),
                             ..Default::default()
@@ -132,6 +139,42 @@ fn setup(mut commands: Commands, menu_assets: Res<MenuAssets>) {
                                 },
                             ));
                         });
+                    parent
+                        .spawn_bundle(ButtonBundle {
+                            style: button_style.clone(),
+                            image: menu_assets.button.clone().into(),
+                            color: Color::rgb(0.15, 0.15, 0.15).into(),
+                            ..Default::default()
+                        })
+                        .insert(MenuButton::Sound)
+                        .with_children(|parent| {
+                            parent.spawn_bundle(TextBundle::from_section(
+                                "Toggle\nSFX Volume",
+                                TextStyle {
+                                    font: menu_assets.pixel_font.clone(),
+                                    font_size: 15.0,
+                                    color: Color::WHITE,
+                                },
+                            ));
+                        });
+                    parent
+                        .spawn_bundle(ButtonBundle {
+                            style: button_style.clone(),
+                            image: menu_assets.button.clone().into(),
+                            color: Color::rgb(0.15, 0.15, 0.15).into(),
+                            ..Default::default()
+                        })
+                        .insert(MenuButton::Music)
+                        .with_children(|parent| {
+                            parent.spawn_bundle(TextBundle::from_section(
+                                "Toggle\nMusic Volume",
+                                TextStyle {
+                                    font: menu_assets.pixel_font.clone(),
+                                    font_size: 15.0,
+                                    color: Color::WHITE,
+                                },
+                            ));
+                        });
                 });
         });
 }
@@ -142,6 +185,9 @@ fn button_system(
         (Changed<Interaction>, With<Button>),
     >,
     mut state: ResMut<bevy::prelude::State<State>>,
+    mut volume_settings: ResMut<VolumeSettings>,
+    audio: Res<Audio>,
+    audio_assets: Res<AudioAssets>,
 ) {
     for (button, interaction, mut color) in &mut interaction_query {
         match *interaction {
@@ -150,6 +196,18 @@ fn button_system(
                 match button {
                     MenuButton::Start => {
                         state.set(State::LoadGame).unwrap();
+                    }
+                    MenuButton::Sound => {
+                        volume_settings.toggle_sfx_vol();
+                        audio
+                            .play(audio_assets.blip1.clone())
+                            .with_volume(volume_settings.sfx_vol);
+                    }
+                    MenuButton::Music => {
+                        volume_settings.toggle_music_vol();
+                        audio
+                            .play(audio_assets.blip1.clone())
+                            .with_volume(volume_settings.music_vol);
                     }
                 }
             }

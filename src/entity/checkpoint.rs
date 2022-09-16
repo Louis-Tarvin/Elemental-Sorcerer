@@ -9,7 +9,11 @@ use bevy_ecs_ldtk::{LdtkEntity, LevelSelection};
 use bevy_kira_audio::{Audio, AudioControl};
 use heron::CollisionEvent;
 
-use crate::{animation::Animated, audio::AudioAssets, physics::PhysicsObjectBundle};
+use crate::{
+    animation::Animated,
+    audio::{AudioAssets, VolumeSettings},
+    physics::PhysicsObjectBundle,
+};
 
 use super::{player::Player, signpost::TextBox, ProximityText};
 
@@ -39,6 +43,7 @@ pub fn check_near(
     level_selection: Res<LevelSelection>,
     audio: Res<Audio>,
     audio_assets: Res<AudioAssets>,
+    volume_settings: Res<VolumeSettings>,
 ) {
     for (player_entity, mut player) in player.iter_mut() {
         for collision in collisions.iter() {
@@ -57,7 +62,9 @@ pub fn check_near(
                             player.checkpoint.y += 3.0;
                             player.checkpoint_level = level_selection.clone();
                             player.near_checkpoint = true;
-                            audio.play(audio_assets.ping.clone());
+                            audio
+                                .play(audio_assets.ping.clone())
+                                .with_volume(volume_settings.sfx_vol);
                         }
                     } else if b.rigid_body_entity() == player_entity {
                         if let Ok((transform, children)) = checkpoints.get(a.rigid_body_entity()) {
@@ -72,7 +79,9 @@ pub fn check_near(
                             player.checkpoint.y += 3.0;
                             player.checkpoint_level = level_selection.clone();
                             player.near_checkpoint = true;
-                            audio.play(audio_assets.ping.clone());
+                            audio
+                                .play(audio_assets.ping.clone())
+                                .with_volume(volume_settings.sfx_vol);
                         }
                     }
                 }

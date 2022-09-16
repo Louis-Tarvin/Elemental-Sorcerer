@@ -4,7 +4,9 @@ use bevy_ecs_ldtk::LdtkWorldBundle;
 use bevy_kira_audio::{Audio, AudioControl};
 
 use crate::{
-    abilities, animation, audio::AudioAssets, camera, damage, destruction, entity, input, physics,
+    abilities, animation,
+    audio::{AudioAssets, VolumeSettings},
+    camera, damage, destruction, entity, input, physics,
 };
 
 use super::{load_game::GameAssets, State};
@@ -16,8 +18,7 @@ impl Plugin for GamePlugin {
         app.add_loading_state(
             LoadingState::new(State::LoadGame)
                 .continue_to_state(State::InGame)
-                .with_collection::<GameAssets>()
-                .with_collection::<AudioAssets>(),
+                .with_collection::<GameAssets>(),
         )
         .add_system_set(SystemSet::on_enter(State::InGame).with_system(setup))
         .add_system_set(
@@ -72,6 +73,7 @@ fn setup(
     game_assets: Res<GameAssets>,
     audio: Res<Audio>,
     audio_assets: Res<AudioAssets>,
+    volume_settings: Res<VolumeSettings>,
 ) {
     commands.spawn_bundle(LdtkWorldBundle {
         ldtk_handle: game_assets.level.clone(),
@@ -79,6 +81,6 @@ fn setup(
     });
     audio
         .play(audio_assets.bgm.clone())
-        .with_volume(0.5)
+        .with_volume(0.5 * volume_settings.music_vol)
         .looped();
 }

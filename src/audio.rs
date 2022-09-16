@@ -33,3 +33,31 @@ pub struct AudioAssets {
     #[asset(path = "audio/blip2.wav")]
     pub blip2: Handle<AudioSource>,
 }
+
+pub struct VolumeSettings {
+    pub sfx_vol: f64,
+    pub music_vol: f64,
+}
+impl Default for VolumeSettings {
+    fn default() -> Self {
+        Self {
+            music_vol: 1.0,
+            sfx_vol: 1.0,
+        }
+    }
+}
+
+impl VolumeSettings {
+    pub fn toggle_sfx_vol(&mut self) {
+        self.sfx_vol -= 0.1;
+        if self.sfx_vol < 0.0 {
+            self.sfx_vol = 1.0;
+        }
+    }
+    pub fn toggle_music_vol(&mut self) {
+        self.music_vol -= 0.1;
+        if self.music_vol < 0.0 {
+            self.music_vol = 1.0;
+        }
+    }
+}

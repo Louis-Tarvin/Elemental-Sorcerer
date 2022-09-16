@@ -14,7 +14,7 @@ use heron::PhysicsTime;
 
 use crate::{
     abilities::{Element, Equipment},
-    audio::AudioAssets,
+    audio::{AudioAssets, VolumeSettings},
     debug::DebugSettings,
     entity::player::Player,
     input::Controllable,
@@ -466,18 +466,23 @@ fn button_interaction_system(
     mut state: ResMut<AbilityMenuState>,
     audio: Res<Audio>,
     audio_assets: Res<AudioAssets>,
+    volume_settings: Res<VolumeSettings>,
 ) {
     for (interaction, element, grid_pos) in &element_button_query {
         match *interaction {
             Interaction::Clicked => {
-                audio.play(audio_assets.blip2.clone());
+                audio
+                    .play(audio_assets.blip2.clone())
+                    .with_volume(volume_settings.sfx_vol);
                 for mut player in player_query.iter_mut() {
                     player.combination.1 = Some(*element);
                 }
             }
             Interaction::Hovered => {
                 state.selected_pos = *grid_pos;
-                audio.play(audio_assets.blip1.clone());
+                audio
+                    .play(audio_assets.blip1.clone())
+                    .with_volume(volume_settings.sfx_vol);
             }
             _ => {}
         }
@@ -485,14 +490,18 @@ fn button_interaction_system(
     for (interaction, equipment, grid_pos) in &equipment_button_query {
         match *interaction {
             Interaction::Clicked => {
-                audio.play(audio_assets.blip2.clone());
+                audio
+                    .play(audio_assets.blip2.clone())
+                    .with_volume(volume_settings.sfx_vol);
                 for mut player in player_query.iter_mut() {
                     player.combination.0 = Some(*equipment);
                 }
             }
             Interaction::Hovered => {
                 state.selected_pos = *grid_pos;
-                audio.play(audio_assets.blip1.clone());
+                audio
+                    .play(audio_assets.blip1.clone())
+                    .with_volume(volume_settings.sfx_vol);
             }
             _ => {}
         }
@@ -549,12 +558,15 @@ fn button_keyboard_select(
     keyboard_input: Res<Input<KeyCode>>,
     audio: Res<Audio>,
     audio_assets: Res<AudioAssets>,
+    volume_settings: Res<VolumeSettings>,
 ) {
     let mut player = player_query
         .get_single_mut()
         .expect("There should only be one player");
     if keyboard_input.just_pressed(KeyCode::Down) {
-        audio.play(audio_assets.blip1.clone());
+        audio
+            .play(audio_assets.blip1.clone())
+            .with_volume(volume_settings.sfx_vol);
         state.selected_pos.row += 1;
         if state.selected_pos.col == 0 {
             if state.selected_pos.row >= player.num_equipment() {
@@ -565,7 +577,9 @@ fn button_keyboard_select(
         }
     }
     if keyboard_input.just_pressed(KeyCode::Up) {
-        audio.play(audio_assets.blip1.clone());
+        audio
+            .play(audio_assets.blip1.clone())
+            .with_volume(volume_settings.sfx_vol);
         if state.selected_pos.col == 0 {
             if state.selected_pos.row == 0 {
                 state.selected_pos.row = player.num_equipment() - 1;
@@ -581,7 +595,9 @@ fn button_keyboard_select(
     if (keyboard_input.just_pressed(KeyCode::Left) || keyboard_input.just_pressed(KeyCode::Right))
         && player.num_elements() != 0
     {
-        audio.play(audio_assets.blip1.clone());
+        audio
+            .play(audio_assets.blip1.clone())
+            .with_volume(volume_settings.sfx_vol);
         if state.selected_pos.col == 0 {
             state.selected_pos.col = 1;
         } else {
@@ -589,7 +605,9 @@ fn button_keyboard_select(
         }
     }
     if keyboard_input.just_pressed(KeyCode::Z) {
-        audio.play(audio_assets.blip2.clone());
+        audio
+            .play(audio_assets.blip2.clone())
+            .with_volume(volume_settings.sfx_vol);
         for (element, grid_pos) in element_button_query.iter() {
             if *grid_pos == state.selected_pos {
                 player.combination.1 = Some(*element);
