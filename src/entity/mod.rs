@@ -11,6 +11,7 @@ use crate::{
 pub mod ability;
 pub mod block;
 pub mod checkpoint;
+pub mod fan;
 pub mod goblin;
 pub mod lava;
 pub mod player;
@@ -31,6 +32,8 @@ impl From<EntityInstance> for Animated {
             "Ability" => Animated::new(0.1, 0, 6, false),
             "Lava" => Animated::new(0.3, 0, 8, false),
             "Water" => Animated::new(0.15, 0, 8, false),
+            "Fan" => Animated::new(0.1, 0, 4, false),
+            "AirCurrent" => Animated::new(0.1, 0, 5, false),
             "Torch" => Animated::new(0.1, 0, 12, false),
             _ => Animated::new(0.1, 0, 1, false),
         }
@@ -81,7 +84,11 @@ impl From<EntityInstance> for PhysicsObjectBundle {
             },
             "Goblin" => PhysicsObjectBundle {
                 collider: CollisionShape::Cuboid {
-                    half_extends: Vec3::splat(7.0),
+                    half_extends: Vec3 {
+                        x: 6.0,
+                        y: 7.0,
+                        z: 1.0,
+                    },
                     border_radius: None,
                 },
                 rb: RigidBody::KinematicVelocityBased,
@@ -117,6 +124,34 @@ impl From<EntityInstance> for PhysicsObjectBundle {
                 rb: RigidBody::Static,
                 layer: CollisionLayers::all_masks::<PhysicsLayers>()
                     .with_groups([PhysicsLayers::Terrain, PhysicsLayers::Wood]),
+                ..Default::default()
+            },
+            "Fan" => PhysicsObjectBundle {
+                collider: CollisionShape::Cuboid {
+                    half_extends: Vec3 {
+                        x: 8.0,
+                        y: 5.0,
+                        z: 1.0,
+                    },
+                    border_radius: None,
+                },
+                material: PhysicMaterial {
+                    friction: 0.0,
+                    ..Default::default()
+                },
+                rb: RigidBody::Static,
+                layer: CollisionLayers::all_masks::<PhysicsLayers>()
+                    .with_groups([PhysicsLayers::Terrain]),
+                ..Default::default()
+            },
+            "AirCurrent" => PhysicsObjectBundle {
+                collider: CollisionShape::Cuboid {
+                    half_extends: Vec3::splat(8.0),
+                    border_radius: None,
+                },
+                rb: RigidBody::Sensor,
+                layer: CollisionLayers::all_masks::<PhysicsLayers>()
+                    .with_group(PhysicsLayers::Interactable),
                 ..Default::default()
             },
             "Lava" => PhysicsObjectBundle {

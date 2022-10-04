@@ -10,7 +10,7 @@
 	},
 	"jsonVersion": "1.1.3",
 	"appBuildId": 458364,
-	"nextUid": 120,
+	"nextUid": 127,
 	"identifierStyle": "Capitalize",
 	"worldLayout": "Free",
 	"worldGridWidth": 256,
@@ -1549,6 +1549,122 @@
 			"pivotX": 0,
 			"pivotY": 0,
 			"fieldDefs": []
+		},
+		{
+			"identifier": "Fan",
+			"uid": 120,
+			"tags": [],
+			"width": 16,
+			"height": 16,
+			"resizableX": false,
+			"resizableY": false,
+			"keepAspectRatio": false,
+			"tileOpacity": 1,
+			"fillOpacity": 0.08,
+			"lineOpacity": 0,
+			"hollow": false,
+			"color": "#94D9B3",
+			"renderMode": "Tile",
+			"showName": true,
+			"tilesetId": 58,
+			"tileId": 139,
+			"tileRenderMode": "FitInside",
+			"tileRect": { "tilesetUid": 58, "x": 176, "y": 128, "w": 16, "h": 16 },
+			"nineSliceBorders": [],
+			"maxCount": 0,
+			"limitScope": "PerLevel",
+			"limitBehavior": "MoveLastOne",
+			"pivotX": 0,
+			"pivotY": 0,
+			"fieldDefs": [
+				{
+					"identifier": "Direction",
+					"__type": "LocalEnum.Direction",
+					"uid": 124,
+					"type": "F_Enum(123)",
+					"isArray": false,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "ValueOnly",
+					"editorDisplayPos": "Above",
+					"editorAlwaysShow": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": null,
+					"textLanguageMode": null,
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefTags": [],
+					"tilesetUid": null
+				}
+			]
+		},
+		{
+			"identifier": "AirCurrent",
+			"uid": 125,
+			"tags": [],
+			"width": 16,
+			"height": 16,
+			"resizableX": false,
+			"resizableY": false,
+			"keepAspectRatio": false,
+			"tileOpacity": 1,
+			"fillOpacity": 0.08,
+			"lineOpacity": 0,
+			"hollow": false,
+			"color": "#94D9B3",
+			"renderMode": "Tile",
+			"showName": true,
+			"tilesetId": 58,
+			"tileId": 161,
+			"tileRenderMode": "FitInside",
+			"tileRect": { "tilesetUid": 58, "x": 16, "y": 160, "w": 16, "h": 16 },
+			"nineSliceBorders": [],
+			"maxCount": 0,
+			"limitScope": "PerLevel",
+			"limitBehavior": "MoveLastOne",
+			"pivotX": 0,
+			"pivotY": 0,
+			"fieldDefs": [
+				{
+					"identifier": "Direction",
+					"__type": "LocalEnum.Direction",
+					"uid": 126,
+					"type": "F_Enum(123)",
+					"isArray": false,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "Hidden",
+					"editorDisplayPos": "Above",
+					"editorAlwaysShow": false,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": null,
+					"textLanguageMode": null,
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefTags": [],
+					"tilesetUid": null
+				}
+			]
 		}
 	], "tilesets": [
 		{
@@ -1693,13 +1809,21 @@
 			"savedSelections": [],
 			"cachedPixelData": { "opaqueTiles": "11", "averageColors": "f7defd95" }
 		}
-	], "enums": [{ "identifier": "Ability", "uid": 25, "values": [
-		{ "id": "Fire", "tileId": 145, "color": 14518374, "__tileSrcRect": [16,144,16,16] },
-		{ "id": "Air", "tileId": 162, "color": 10075016, "__tileSrcRect": [32,160,16,16] },
-		{ "id": "Water", "tileId": 151, "color": 6728430, "__tileSrcRect": [112,144,16,16] },
-		{ "id": "Boots", "tileId": 769, "color": 7820612, "__tileSrcRect": [16,768,16,16] },
-		{ "id": "Cloak", "tileId": 697, "color": 10053307, "__tileSrcRect": [144,688,16,16] }
-	], "iconTilesetUid": 58, "externalRelPath": null, "externalFileChecksum": null, "tags": [] }], "externalEnums": [], "levelFields": [] },
+	], "enums": [
+		{ "identifier": "Ability", "uid": 25, "values": [
+			{ "id": "Fire", "tileId": 145, "color": 14518374, "__tileSrcRect": [16,144,16,16] },
+			{ "id": "Air", "tileId": 162, "color": 10075016, "__tileSrcRect": [32,160,16,16] },
+			{ "id": "Water", "tileId": 151, "color": 6728430, "__tileSrcRect": [112,144,16,16] },
+			{ "id": "Boots", "tileId": 769, "color": 7820612, "__tileSrcRect": [16,768,16,16] },
+			{ "id": "Cloak", "tileId": 697, "color": 10053307, "__tileSrcRect": [144,688,16,16] }
+		], "iconTilesetUid": 58, "externalRelPath": null, "externalFileChecksum": null, "tags": [] },
+		{ "identifier": "Direction", "uid": 123, "values": [
+			{ "id": "North", "tileId": null, "color": 0, "__tileSrcRect": null },
+			{ "id": "East", "tileId": null, "color": 0, "__tileSrcRect": null },
+			{ "id": "South", "tileId": null, "color": 0, "__tileSrcRect": null },
+			{ "id": "West", "tileId": null, "color": 0, "__tileSrcRect": null }
+		], "iconTilesetUid": null, "externalRelPath": null, "externalFileChecksum": null, "tags": [] }
+	], "externalEnums": [], "levelFields": [] },
 	"levels": [
 		{
 			"identifier": "Level_0",
@@ -3020,6 +3144,159 @@
 							"defUid": 57,
 							"px": [512,304],
 							"fieldInstances": []
+						},
+						{
+							"__identifier": "Fan",
+							"__grid": [11,11],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 176, "y": 128, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "d33957d0-2a00-11ed-923d-b3b8f5755e76",
+							"width": 16,
+							"height": 16,
+							"defUid": 120,
+							"px": [176,176],
+							"fieldInstances": [{ "__identifier": "Direction", "__value": "North", "__type": "LocalEnum.Direction", "__tile": null, "defUid": 124, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["North"]
+							}] }]
+						},
+						{
+							"__identifier": "AirCurrent",
+							"__grid": [11,10],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 16, "y": 160, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "184068c0-2a00-11ed-8dfb-d3da756ce80a",
+							"width": 16,
+							"height": 16,
+							"defUid": 125,
+							"px": [176,160],
+							"fieldInstances": [{ "__identifier": "Direction", "__value": "North", "__type": "LocalEnum.Direction", "__tile": null, "defUid": 126, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["North"]
+							}] }]
+						},
+						{
+							"__identifier": "AirCurrent",
+							"__grid": [11,9],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 16, "y": 160, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "1b1c86a0-2a00-11ed-8dfb-ab432fcad217",
+							"width": 16,
+							"height": 16,
+							"defUid": 125,
+							"px": [176,144],
+							"fieldInstances": [{ "__identifier": "Direction", "__value": "North", "__type": "LocalEnum.Direction", "__tile": null, "defUid": 126, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["North"]
+							}] }]
+						},
+						{
+							"__identifier": "AirCurrent",
+							"__grid": [11,8],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 16, "y": 160, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "1ce69840-2a00-11ed-8dfb-670719b32f53",
+							"width": 16,
+							"height": 16,
+							"defUid": 125,
+							"px": [176,128],
+							"fieldInstances": [{ "__identifier": "Direction", "__value": "North", "__type": "LocalEnum.Direction", "__tile": null, "defUid": 126, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["North"]
+							}] }]
+						},
+						{
+							"__identifier": "Fan",
+							"__grid": [9,12],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 176, "y": 128, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "3c2c6ea0-2a00-11ed-8dfb-0bd4a8642dad",
+							"width": 16,
+							"height": 16,
+							"defUid": 120,
+							"px": [144,192],
+							"fieldInstances": [{ "__identifier": "Direction", "__value": "West", "__type": "LocalEnum.Direction", "__tile": null, "defUid": 124, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["West"]
+							}] }]
+						},
+						{
+							"__identifier": "Fan",
+							"__grid": [12,13],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 176, "y": 128, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "4159f690-2a00-11ed-8dfb-7d3c91bae40e",
+							"width": 16,
+							"height": 16,
+							"defUid": 120,
+							"px": [192,208],
+							"fieldInstances": [{ "__identifier": "Direction", "__value": "South", "__type": "LocalEnum.Direction", "__tile": null, "defUid": 124, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["South"]
+							}] }]
+						},
+						{
+							"__identifier": "Fan",
+							"__grid": [12,12],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 176, "y": 128, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "433a9d70-2a00-11ed-8dfb-536ad64b6c34",
+							"width": 16,
+							"height": 16,
+							"defUid": 120,
+							"px": [192,192],
+							"fieldInstances": [{ "__identifier": "Direction", "__value": "East", "__type": "LocalEnum.Direction", "__tile": null, "defUid": 124, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["East"]
+							}] }]
+						},
+						{
+							"__identifier": "AirCurrent",
+							"__grid": [13,12],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 16, "y": 160, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "2e66d1a0-2a00-11ed-8dfb-2385567fcf98",
+							"width": 16,
+							"height": 16,
+							"defUid": 125,
+							"px": [208,192],
+							"fieldInstances": [{ "__identifier": "Direction", "__value": "East", "__type": "LocalEnum.Direction", "__tile": null, "defUid": 126, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["East"]
+							}] }]
+						},
+						{
+							"__identifier": "AirCurrent",
+							"__grid": [8,12],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 58, "x": 16, "y": 160, "w": 16, "h": 16 },
+							"__smartColor": "#94D9B3",
+							"iid": "31ff61b0-2a00-11ed-8dfb-fd0b05d9b58b",
+							"width": 16,
+							"height": 16,
+							"defUid": 125,
+							"px": [128,192],
+							"fieldInstances": [{ "__identifier": "Direction", "__value": "West", "__type": "LocalEnum.Direction", "__tile": null, "defUid": 126, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["West"]
+							}] }]
 						}
 					]
 				},

@@ -18,6 +18,7 @@ use crate::{
         ability::AbilityBundle,
         block::{BlockBundle, WoodBlockBundle},
         checkpoint::CheckpointBundle,
+        fan::{AirCurrentBundle, FanBundle},
         goblin::GoblinBundle,
         lava::LavaBundle,
         player::{Player, PlayerBundle},
@@ -63,6 +64,8 @@ impl Plugin for LevelPlugin {
             .register_ldtk_entity::<LavaBundle>("Lava")
             .register_ldtk_entity::<WaterBundle>("Water")
             .register_ldtk_entity::<TorchBundle>("Torch")
+            .register_ldtk_entity::<FanBundle>("Fan")
+            .register_ldtk_entity::<AirCurrentBundle>("AirCurrent")
             .register_ldtk_entity::<TrophyBundle>("Trophy");
     }
 }

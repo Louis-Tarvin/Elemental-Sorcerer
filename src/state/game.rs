@@ -63,6 +63,8 @@ impl Plugin for GamePlugin {
                 .with_system(entity::checkpoint::check_near)
                 .with_system(entity::checkpoint::offset)
                 .with_system(entity::torch::offset)
+                .with_system(entity::fan::apply_force)
+                .with_system(entity::fan::rotate)
                 .with_system(entity::trophy::check_near),
         );
     }

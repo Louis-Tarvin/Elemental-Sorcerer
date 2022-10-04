@@ -7,6 +7,7 @@ use bevy::{
 };
 use bevy_ecs_ldtk::{EntityInstance, GridCoords, LdtkEntity, LevelSelection, Worldly};
 use bevy_inspector_egui::Inspectable;
+use heron::Acceleration;
 
 use crate::{
     abilities::{Element, Equipment},
@@ -124,6 +125,7 @@ pub struct PlayerBundle {
     #[bundle]
     #[from_entity_instance]
     pub physics_bundle: PhysicsObjectBundle,
+    pub acceleration: Acceleration,
     #[from_entity_instance]
     pub controllable: Controllable,
     #[from_entity_instance]
