@@ -59,6 +59,10 @@ pub struct PhysicsObjectBundle {
     pub layer: CollisionLayers,
 }
 
+/// Added to entities that are affected by forces such as wind
+#[derive(Default, Component)]
+pub struct Dynamic;
+
 pub fn handle_controllables(
     time: Res<Time>,
     mut commands: Commands,

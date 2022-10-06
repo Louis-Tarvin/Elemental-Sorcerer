@@ -3,8 +3,9 @@ use bevy::{
     sprite::SpriteBundle,
 };
 use bevy_ecs_ldtk::LdtkEntity;
+use heron::Acceleration;
 
-use crate::physics::PhysicsObjectBundle;
+use crate::physics::{Dynamic, PhysicsObjectBundle};
 
 use super::Flamable;
 
@@ -19,7 +20,9 @@ pub struct BlockBundle {
     sprite_bundle: SpriteBundle,
     #[bundle]
     #[from_entity_instance]
-    pub physics_bundle: PhysicsObjectBundle,
+    physics_bundle: PhysicsObjectBundle,
+    acceleration: Acceleration,
+    dynamic: Dynamic,
 }
 
 #[derive(Bundle, LdtkEntity)]
@@ -31,5 +34,5 @@ pub struct WoodBlockBundle {
     sprite_bundle: SpriteBundle,
     #[bundle]
     #[from_entity_instance]
-    pub physics_bundle: PhysicsObjectBundle,
+    physics_bundle: PhysicsObjectBundle,
 }

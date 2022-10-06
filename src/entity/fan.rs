@@ -2,16 +2,19 @@ use std::f32::consts::PI;
 
 use bevy::{
     prelude::{
-        Added, Bundle, Component, Entity, EventReader, Query, Transform, Vec3, With, Without,
+        Added, Bundle, Component, Entity, EventReader, Or, Query, Transform, Vec3, With, Without,
     },
     sprite::SpriteSheetBundle,
 };
 use bevy_ecs_ldtk::{prelude::FieldValue, EntityInstance, LdtkEntity};
 use heron::{Acceleration, CollisionEvent};
 
-use crate::{animation::Animated, physics::PhysicsObjectBundle};
+use crate::{
+    animation::Animated,
+    physics::{Dynamic, PhysicsObjectBundle},
+};
 
-use super::player::Player;
+use super::{block::Block, player::Player};
 
 #[derive(Clone, Copy)]
 pub enum Direction {
@@ -130,35 +133,31 @@ pub struct AirCurrentBundle {
 }
 
 pub fn apply_force(
-    mut player: Query<(Entity, &mut Acceleration), With<Player>>,
+    mut movables: Query<&mut Acceleration, With<Dynamic>>,
     areas: Query<&ForceArea>,
     mut collisions: EventReader<CollisionEvent>,
 ) {
-    for (player_entity, mut player_accelearation) in player.iter_mut() {
-        for collision in collisions.iter() {
-            match collision {
-                CollisionEvent::Started(a, b) => {
-                    if let Ok(area) = areas.get(a.rigid_body_entity()) {
-                        if player_entity == b.rigid_body_entity() {
-                            player_accelearation.linear =
-                                Vec3::from(area.direction) * area.strength;
-                        }
-                    } else if let Ok(area) = areas.get(b.rigid_body_entity()) {
-                        if player_entity == a.rigid_body_entity() {
-                            player_accelearation.linear =
-                                Vec3::from(area.direction) * area.strength;
-                        }
+    for collision in collisions.iter() {
+        match collision {
+            CollisionEvent::Started(a, b) => {
+                if let Ok(area) = areas.get(a.rigid_body_entity()) {
+                    if let Ok(mut acceleration) = movables.get_mut(b.rigid_body_entity()) {
+                        acceleration.linear = Vec3::from(area.direction) * area.strength;
+                    }
+                } else if let Ok(area) = areas.get(b.rigid_body_entity()) {
+                    if let Ok(mut acceleration) = movables.get_mut(a.rigid_body_entity()) {
+                        acceleration.linear = Vec3::from(area.direction) * area.strength;
                     }
                 }
-                CollisionEvent::Stopped(a, b) => {
-                    if areas.contains(a.rigid_body_entity()) {
-                        if player_entity == b.rigid_body_entity() {
-                            player_accelearation.linear = Vec3::ZERO;
-                        }
-                    } else if areas.contains(b.rigid_body_entity())
-                        && player_entity == a.rigid_body_entity()
-                    {
-                        player_accelearation.linear = Vec3::ZERO;
+            }
+            CollisionEvent::Stopped(a, b) => {
+                if areas.contains(a.rigid_body_entity()) {
+                    if let Ok(mut acceleration) = movables.get_mut(b.rigid_body_entity()) {
+                        acceleration.linear = Vec3::ZERO;
+                    }
+                } else if areas.contains(b.rigid_body_entity()) {
+                    if let Ok(mut acceleration) = movables.get_mut(a.rigid_body_entity()) {
+                        acceleration.linear = Vec3::ZERO;
                     }
                 }
             }

@@ -13,7 +13,7 @@ use crate::{
     abilities::{Element, Equipment},
     animation::Animated,
     input::Controllable,
-    physics::PhysicsObjectBundle,
+    physics::{Dynamic, PhysicsObjectBundle},
 };
 
 impl From<EntityInstance> for Controllable {
@@ -126,6 +126,7 @@ pub struct PlayerBundle {
     #[from_entity_instance]
     pub physics_bundle: PhysicsObjectBundle,
     pub acceleration: Acceleration,
+    dynamic: Dynamic,
     #[from_entity_instance]
     pub controllable: Controllable,
     #[from_entity_instance]
