@@ -27,7 +27,7 @@ use crate::{
         trophy::TrophyBundle,
         water::WaterBundle,
     },
-    physics::{GroundDetector, PhysicsLayers},
+    physics::{Dynamic, GroundDetector, PhysicsLayers},
     state::State,
 };
 
@@ -35,7 +35,7 @@ pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(LevelSelection::Index(9))
+        app.insert_resource(LevelSelection::Index(1))
             .insert_resource(LdtkSettings {
                 level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
                     load_level_neighbors: true,
@@ -302,6 +302,7 @@ fn restart_level(
     mut player_query: Query<(&mut Transform, &Player)>,
     mut level_selection: ResMut<LevelSelection>,
     mut detectors: Query<&mut GroundDetector>,
+    mut movables: Query<&mut Dynamic>,
     input: Res<Input<KeyCode>>,
 ) {
     if input.just_pressed(KeyCode::R) {
@@ -316,10 +317,13 @@ fn restart_level(
         for mut detector in detectors.iter_mut() {
             detector.active_collisions = 0;
         }
+        for mut movable in movables.iter_mut() {
+            movable.counter = 0;
+        }
     }
 }
 
-/// Prevents entity sprites from dissapearing upon reload
+/// Prevents entity sprites from disappearing upon reload
 /// See: https://github.com/Trouv/bevy_ecs_ldtk/issues/111
 fn prevent_asset_unloading(mut commands: Commands, asset_server: Res<AssetServer>) {
     #[derive(Component)]

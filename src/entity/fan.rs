@@ -1,9 +1,7 @@
 use std::f32::consts::PI;
 
 use bevy::{
-    prelude::{
-        Added, Bundle, Component, Entity, EventReader, Or, Query, Transform, Vec3, With, Without,
-    },
+    prelude::{warn, Added, Bundle, Component, EventReader, Query, Transform, Vec3, Without},
     sprite::SpriteSheetBundle,
 };
 use bevy_ecs_ldtk::{prelude::FieldValue, EntityInstance, LdtkEntity};
@@ -11,28 +9,8 @@ use heron::{Acceleration, CollisionEvent};
 
 use crate::{
     animation::Animated,
-    physics::{Dynamic, PhysicsObjectBundle},
+    physics::{Direction, Dynamic, PhysicsObjectBundle},
 };
-
-use super::{block::Block, player::Player};
-
-#[derive(Clone, Copy)]
-pub enum Direction {
-    North,
-    South,
-    East,
-    West,
-}
-impl From<Direction> for Vec3 {
-    fn from(val: Direction) -> Self {
-        match val {
-            Direction::North => Vec3::from_slice(&[0.0, 1.0, 0.0]),
-            Direction::South => Vec3::from_slice(&[0.0, -1.0, 0.0]),
-            Direction::East => Vec3::from_slice(&[1.0, 0.0, 0.0]),
-            Direction::West => Vec3::from_slice(&[-1.0, 0.0, 0.0]),
-        }
-    }
-}
 
 #[derive(Component)]
 pub struct Fan {
@@ -132,8 +110,8 @@ pub struct AirCurrentBundle {
     pub animated: Animated,
 }
 
-pub fn apply_force(
-    mut movables: Query<&mut Acceleration, With<Dynamic>>,
+pub fn check_collision(
+    mut movables: Query<&mut Dynamic>,
     areas: Query<&ForceArea>,
     mut collisions: EventReader<CollisionEvent>,
 ) {
@@ -141,26 +119,46 @@ pub fn apply_force(
         match collision {
             CollisionEvent::Started(a, b) => {
                 if let Ok(area) = areas.get(a.rigid_body_entity()) {
-                    if let Ok(mut acceleration) = movables.get_mut(b.rigid_body_entity()) {
-                        acceleration.linear = Vec3::from(area.direction) * area.strength;
+                    if let Ok(mut movable) = movables.get_mut(b.rigid_body_entity()) {
+                        movable.counter += 1;
+                        movable.direction = area.direction;
                     }
                 } else if let Ok(area) = areas.get(b.rigid_body_entity()) {
-                    if let Ok(mut acceleration) = movables.get_mut(a.rigid_body_entity()) {
-                        acceleration.linear = Vec3::from(area.direction) * area.strength;
+                    if let Ok(mut movable) = movables.get_mut(a.rigid_body_entity()) {
+                        movable.counter += 1;
+                        movable.direction = area.direction;
                     }
                 }
             }
             CollisionEvent::Stopped(a, b) => {
                 if areas.contains(a.rigid_body_entity()) {
-                    if let Ok(mut acceleration) = movables.get_mut(b.rigid_body_entity()) {
-                        acceleration.linear = Vec3::ZERO;
+                    if let Ok(mut movable) = movables.get_mut(b.rigid_body_entity()) {
+                        if movable.counter > 0 {
+                            movable.counter -= 1;
+                        } else {
+                            warn!("Dynamic entity attempted to decrement collision counter that was already 0");
+                        }
                     }
                 } else if areas.contains(b.rigid_body_entity()) {
-                    if let Ok(mut acceleration) = movables.get_mut(a.rigid_body_entity()) {
-                        acceleration.linear = Vec3::ZERO;
+                    if let Ok(mut movable) = movables.get_mut(a.rigid_body_entity()) {
+                        if movable.counter > 0 {
+                            movable.counter -= 1;
+                        } else {
+                            warn!("Dynamic entity attempted to decrement collision counter that was already 0");
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+pub fn apply_force(mut movables: Query<(&mut Acceleration, &Dynamic)>) {
+    for (mut acceleration, movable) in movables.iter_mut() {
+        if movable.counter > 0 {
+            acceleration.linear = (Vec3::from(movable.direction)) * 700.0;
+        } else {
+            acceleration.linear = Vec3::ZERO;
         }
     }
 }

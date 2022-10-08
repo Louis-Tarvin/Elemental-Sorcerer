@@ -29,7 +29,7 @@ use crate::{
 #[derive(SystemLabel)]
 pub enum PhysicsLabel {
     HandleControllables,
-    CheckGrounded,
+    CheckCollision,
 }
 
 #[derive(PhysicsLayer)]
@@ -59,9 +59,34 @@ pub struct PhysicsObjectBundle {
     pub layer: CollisionLayers,
 }
 
+#[derive(Default, Clone, Copy)]
+pub enum Direction {
+    #[default]
+    North,
+    South,
+    East,
+    West,
+}
+impl From<Direction> for Vec3 {
+    fn from(val: Direction) -> Self {
+        match val {
+            Direction::North => Vec3::from_slice(&[0.0, 1.0, 0.0]),
+            Direction::South => Vec3::from_slice(&[0.0, -1.0, 0.0]),
+            Direction::East => Vec3::from_slice(&[1.0, 0.0, 0.0]),
+            Direction::West => Vec3::from_slice(&[-1.0, 0.0, 0.0]),
+        }
+    }
+}
+
 /// Added to entities that are affected by forces such as wind
 #[derive(Default, Component)]
-pub struct Dynamic;
+pub struct Dynamic {
+    /// A counter that is incremented when a force area is entered and decremented when exited.
+    /// Force stops affecting the entity when the counter goes back to 0.
+    pub counter: u8,
+    /// Most recent force direction
+    pub direction: Direction,
+}
 
 pub fn handle_controllables(
     time: Res<Time>,

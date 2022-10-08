@@ -14,7 +14,7 @@ bevy_kira_audio = { version = "0.12", default-features = false, features = ["wav
 bevy-inspector-egui = "0.12.1"
 bevy_prototype_debug_lines = "0.8"
 bevy_ecs_ldtk = { version = "0.4.0", features = ["atlas"] }
-heron = { version = "4.0.0", features = ["debug-2d"] }
+heron = { version = "4.0.0", features = ["2d"] }
 bevy_asset_loader = "0.12.1"
 console_error_panic_hook = "0.1"
 

@@ -30,13 +30,13 @@ impl Plugin for GamePlugin {
                 .with_system(physics::add_ground_sensor)
                 .with_system(
                     physics::check_grounded
-                        .label(physics::PhysicsLabel::CheckGrounded)
+                        .label(physics::PhysicsLabel::CheckCollision)
                         .after(input::InputLabel::ControllableUpdate),
                 )
                 .with_system(
                     physics::handle_controllables
                         .label(physics::PhysicsLabel::HandleControllables)
-                        .after(physics::PhysicsLabel::CheckGrounded),
+                        .after(physics::PhysicsLabel::CheckCollision),
                 )
                 .with_system(abilities::use_ability)
                 .with_system(abilities::fire_projectile_collision)
@@ -63,7 +63,10 @@ impl Plugin for GamePlugin {
                 .with_system(entity::checkpoint::check_near)
                 .with_system(entity::checkpoint::offset)
                 .with_system(entity::torch::offset)
-                .with_system(entity::fan::apply_force)
+                .with_system(
+                    entity::fan::check_collision.label(physics::PhysicsLabel::CheckCollision),
+                )
+                .with_system(entity::fan::apply_force.after(physics::PhysicsLabel::CheckCollision))
                 .with_system(entity::fan::rotate)
                 .with_system(entity::trophy::check_near),
         );
