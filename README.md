@@ -30,7 +30,8 @@ Thanks to everyone who played, commented, and voted!
 
 ### Acknowledgements
 - [This](https://o-lobster.itch.io/platformmetroidvania-pixel-art-asset-pack) asset pack was used for most of the sprites and tiles.
-- Background music was taken from [this](https://joshuuu.itch.io/short-loopable-background-music) music pack by jhaeka.
+- [bevy_ecs_ldtk](https://github.com/Trouv/bevy_ecs_ldtk) used for loading LDTK levels.
+- [Heron](https://github.com/jcornaz/heron) used for physics.
 
 ---
 
