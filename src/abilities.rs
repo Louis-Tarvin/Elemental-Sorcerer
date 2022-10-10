@@ -70,6 +70,7 @@ pub struct WindProjectile;
 #[derive(Component)]
 pub struct WaterProjectile;
 
+// TODO: split into multiple systems
 pub fn use_ability(
     time: Res<Time>,
     mut commands: Commands,

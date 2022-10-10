@@ -42,8 +42,19 @@ enum MenuButton {
     Music,
 }
 
-fn setup(mut commands: Commands, menu_assets: Res<MenuAssets>) {
+fn setup(
+    mut commands: Commands,
+    menu_assets: Res<MenuAssets>,
+    // audio: Res<Audio>,
+    // audio_assets: Res<AudioAssets>,
+) {
     commands.insert_resource(VolumeSettings::default());
+
+    // TODO: update volume with audio channels
+    // audio
+    // .play(audio_assets.menu.clone())
+    // .with_volume(0.5)
+    // .looped();
 
     commands.spawn_bundle(Camera2dBundle {
         transform: Transform::from_xyz(0.0, 0.0, 900.0),

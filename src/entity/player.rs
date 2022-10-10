@@ -67,6 +67,7 @@ impl Player {
                 "Flow like water (movement speed up)"
             }
             (Some(Equipment::Cloak), Some(Element::Fire)) => "Lava resistance",
+            (Some(Equipment::Cloak), Some(Element::Air)) => "Wind resistance",
             (Some(Equipment::Cloak), Some(Element::Water)) => "Water resistance",
             _ => "No effect",
         }

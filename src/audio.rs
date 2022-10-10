@@ -6,7 +6,9 @@ use bevy_kira_audio::AudioSource;
 
 #[derive(AssetCollection)]
 pub struct AudioAssets {
-    #[asset(path = "audio/bgm.wav")]
+    #[asset(path = "audio/menu.ogg")]
+    pub menu: Handle<AudioSource>,
+    #[asset(path = "audio/bgm.ogg")]
     pub bgm: Handle<AudioSource>,
     #[asset(path = "audio/jump.wav")]
     pub jump: Handle<AudioSource>,

@@ -237,8 +237,8 @@ impl From<EntityInstance> for ProximityText {
                 color: Color::GRAY,
             },
             "Trophy" => ProximityText {
-                text: "You Win!\nThanks for playing.\nI'd love to hear your feedback.".into(),
-                width: 200.0,
+                text: "You Win!\nThanks for playing.".into(),
+                width: 150.0,
                 color: Color::rgb(0.839, 0.604, 0.306),
             },
             _ => panic!("Entity should not have ProximityText component"),

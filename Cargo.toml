@@ -10,7 +10,7 @@ dev = [
 
 [dependencies]
 bevy = { version = "0.8", default-features = false, features = ["bevy_asset", "bevy_winit", "render", "png", "x11"] }
-bevy_kira_audio = { version = "0.12", default-features = false, features = ["wav"] }
+bevy_kira_audio = { version = "0.12", default-features = false, features = ["wav", "ogg"] }
 bevy-inspector-egui = "0.12.1"
 bevy_prototype_debug_lines = "0.8"
 bevy_ecs_ldtk = { version = "0.4.0", features = ["atlas"] }

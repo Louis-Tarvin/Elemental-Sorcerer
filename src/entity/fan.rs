@@ -1,7 +1,9 @@
 use std::f32::consts::PI;
 
 use bevy::{
-    prelude::{warn, Added, Bundle, Component, EventReader, Query, Transform, Vec3, Without},
+    prelude::{
+        warn, Added, Bundle, Component, Entity, EventReader, Query, Transform, Vec3, Without,
+    },
     sprite::SpriteSheetBundle,
 };
 use bevy_ecs_ldtk::{prelude::FieldValue, EntityInstance, LdtkEntity};
@@ -11,6 +13,8 @@ use crate::{
     animation::Animated,
     physics::{Direction, Dynamic, PhysicsObjectBundle},
 };
+
+use super::player::Player;
 
 #[derive(Component)]
 pub struct Fan {
@@ -153,8 +157,18 @@ pub fn check_collision(
     }
 }
 
-pub fn apply_force(mut movables: Query<(&mut Acceleration, &Dynamic)>) {
-    for (mut acceleration, movable) in movables.iter_mut() {
+pub fn apply_force(
+    mut movables: Query<(Entity, &mut Acceleration, &Dynamic)>,
+    players: Query<&Player>,
+) {
+    for (entity, mut acceleration, movable) in movables.iter_mut() {
+        if let Ok(player) = players.get(entity) {
+            if player.has_equipt(crate::abilities::Equipment::Cloak)
+                && player.has_infused(crate::abilities::Element::Air)
+            {
+                continue;
+            }
+        }
         if movable.counter > 0 {
             acceleration.linear = (Vec3::from(movable.direction)) * 700.0;
         } else {
