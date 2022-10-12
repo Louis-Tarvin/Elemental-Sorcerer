@@ -3127,35 +3127,18 @@
 							"fieldInstances": []
 						},
 						{
-							"__identifier": "Checkpoint",
-							"__grid": [10,11],
+							"__identifier": "Player",
+							"__grid": [2,13],
 							"__pivot": [0,0],
 							"__tags": [],
-							"__tile": { "tilesetUid": 58, "x": 144, "y": 32, "w": 16, "h": 16 },
+							"__tile": { "tilesetUid": 58, "x": 0, "y": 240, "w": 16, "h": 16 },
 							"__smartColor": "#94D9B3",
-							"iid": "262da0f0-2a00-11ed-b182-3f532d437441",
+							"iid": "0659b210-2a00-11ed-98a2-17ab9688d3a8",
 							"width": 16,
 							"height": 16,
-							"defUid": 57,
-							"px": [160,176],
+							"defUid": 26,
+							"px": [32,208],
 							"fieldInstances": []
-						},
-						{
-							"__identifier": "AirCurrent",
-							"__grid": [14,13],
-							"__pivot": [0,0],
-							"__tags": [],
-							"__tile": { "tilesetUid": 58, "x": 16, "y": 160, "w": 16, "h": 16 },
-							"__smartColor": "#94D9B3",
-							"iid": "27e2a3f0-2a00-11ed-b182-73426f6a8a9f",
-							"width": 16,
-							"height": 16,
-							"defUid": 125,
-							"px": [224,208],
-							"fieldInstances": [{ "__identifier": "Direction", "__value": "North", "__type": "LocalEnum.Direction", "__tile": null, "defUid": 126, "realEditorValues": [{
-								"id": "V_String",
-								"params": ["North"]
-							}] }]
 						}
 					]
 				},
@@ -7898,20 +7881,6 @@
 								"id": "V_String",
 								"params": ["North"]
 							}] }]
-						},
-						{
-							"__identifier": "Player",
-							"__grid": [12,15],
-							"__pivot": [0,0],
-							"__tags": [],
-							"__tile": { "tilesetUid": 58, "x": 0, "y": 240, "w": 16, "h": 16 },
-							"__smartColor": "#94D9B3",
-							"iid": "0659b210-2a00-11ed-98a2-17ab9688d3a8",
-							"width": 16,
-							"height": 16,
-							"defUid": 26,
-							"px": [192,240],
-							"fieldInstances": []
 						},
 						{
 							"__identifier": "Water",

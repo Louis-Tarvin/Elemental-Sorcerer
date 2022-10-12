@@ -12,12 +12,12 @@ use bevy_ecs_ldtk::{
     EntityInstance,
 };
 use bevy_inspector_egui::Inspectable;
-use bevy_kira_audio::{Audio, AudioControl};
+use bevy_kira_audio::{Audio, AudioChannel, AudioControl};
 use heron::CollisionEvent;
 
 use crate::{
     animation::Animated,
-    audio::{AudioAssets, VolumeSettings},
+    audio::{AudioAssets, SoundChannel, VolumeSettings},
     physics::PhysicsObjectBundle,
 };
 
@@ -95,9 +95,8 @@ pub fn check_near(
     ability_orbs: Query<&Ability>,
     mut player: Query<(Entity, &mut Player)>,
     mut collisions: EventReader<CollisionEvent>,
-    audio: Res<Audio>,
+    sound_channel: Res<AudioChannel<SoundChannel>>,
     audio_assets: Res<AudioAssets>,
-    volume_settings: Res<VolumeSettings>,
 ) {
     for (player_entity, mut player) in player.iter_mut() {
         for collision in collisions.iter() {
@@ -112,9 +111,7 @@ pub fn check_near(
                             Ability::Cloak => player.unlocked_cloak = true,
                         }
                         commands.entity(b.rigid_body_entity()).despawn();
-                        audio
-                            .play(audio_assets.collect.clone())
-                            .with_volume(volume_settings.sfx_vol);
+                        sound_channel.play(audio_assets.collect.clone());
                     }
                 } else if b.rigid_body_entity() == player_entity {
                     if let Ok(ability) = ability_orbs.get(a.rigid_body_entity()) {
@@ -126,9 +123,7 @@ pub fn check_near(
                             Ability::Cloak => player.unlocked_cloak = true,
                         }
                         commands.entity(a.rigid_body_entity()).despawn();
-                        audio
-                            .play(audio_assets.collect.clone())
-                            .with_volume(volume_settings.sfx_vol);
+                        sound_channel.play(audio_assets.collect.clone());
                     }
                 }
             }

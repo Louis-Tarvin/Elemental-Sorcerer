@@ -6,12 +6,12 @@ use bevy::{
     sprite::SpriteSheetBundle,
 };
 use bevy_ecs_ldtk::{LdtkEntity, LevelSelection};
-use bevy_kira_audio::{Audio, AudioControl};
+use bevy_kira_audio::{Audio, AudioChannel, AudioControl};
 use heron::CollisionEvent;
 
 use crate::{
     animation::Animated,
-    audio::{AudioAssets, VolumeSettings},
+    audio::{AudioAssets, SoundChannel, VolumeSettings},
     physics::PhysicsObjectBundle,
 };
 
@@ -41,9 +41,8 @@ pub fn check_near(
     mut text: Query<&mut Visibility, With<TextBox>>,
     mut collisions: EventReader<CollisionEvent>,
     level_selection: Res<LevelSelection>,
-    audio: Res<Audio>,
+    sound_channel: Res<AudioChannel<SoundChannel>>,
     audio_assets: Res<AudioAssets>,
-    volume_settings: Res<VolumeSettings>,
 ) {
     for (player_entity, mut player) in player.iter_mut() {
         for collision in collisions.iter() {
@@ -62,9 +61,7 @@ pub fn check_near(
                             player.checkpoint.y += 3.0;
                             player.checkpoint_level = level_selection.clone();
                             player.near_checkpoint = true;
-                            audio
-                                .play(audio_assets.ping.clone())
-                                .with_volume(volume_settings.sfx_vol);
+                            sound_channel.play(audio_assets.ping.clone());
                         }
                     } else if b.rigid_body_entity() == player_entity {
                         if let Ok((transform, children)) = checkpoints.get(a.rigid_body_entity()) {
@@ -79,9 +76,7 @@ pub fn check_near(
                             player.checkpoint.y += 3.0;
                             player.checkpoint_level = level_selection.clone();
                             player.near_checkpoint = true;
-                            audio
-                                .play(audio_assets.ping.clone())
-                                .with_volume(volume_settings.sfx_vol);
+                            sound_channel.play(audio_assets.ping.clone());
                         }
                     }
                 }

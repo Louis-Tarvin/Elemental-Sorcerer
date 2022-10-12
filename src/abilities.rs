@@ -9,14 +9,14 @@ use bevy::{
     time::{Time, Timer},
 };
 use bevy_inspector_egui::Inspectable;
-use bevy_kira_audio::{Audio, AudioControl};
+use bevy_kira_audio::{Audio, AudioChannel, AudioControl};
 use heron::{
     CollisionEvent, CollisionLayers, CollisionShape, RigidBody, RotationConstraints, Velocity,
 };
 
 use crate::{
     animation::Animated,
-    audio::{AudioAssets, VolumeSettings},
+    audio::{AudioAssets, SoundChannel},
     damage::Hurtbox,
     destruction::DestructionTimer,
     entity::{
@@ -82,9 +82,8 @@ pub fn use_ability(
     )>,
     game_assets: Res<GameAssets>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-    audio: Res<Audio>,
+    sound_channel: Res<Audio>,
     audio_assets: Res<AudioAssets>,
-    volume_settings: Res<VolumeSettings>,
 ) {
     for (mut controllable, transform, player, sprite) in query.iter_mut() {
         controllable.ability_timer.tick(time.delta());
@@ -137,9 +136,7 @@ pub fn use_ability(
                             .with_group(PhysicsLayers::Fireball)
                             .with_masks([PhysicsLayers::Enemy, PhysicsLayers::Wood]),
                     );
-                audio
-                    .play(audio_assets.fireball.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.fireball.clone());
             } else if player.has_infused(Element::Air) {
                 controllable.ability_timer.reset();
                 let vel_x = if sprite.flip_x { -50.0 } else { 50.0 };
@@ -185,9 +182,7 @@ pub fn use_ability(
                             .with_group(PhysicsLayers::Wind)
                             .with_mask(PhysicsLayers::Movable),
                     );
-                audio
-                    .play(audio_assets.air.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.air.clone());
             } else if player.has_infused(Element::Water) {
                 controllable.ability_timer.reset();
                 let vel_x = if sprite.flip_x { -100.0 } else { 100.0 };
@@ -221,9 +216,7 @@ pub fn use_ability(
                             .with_group(PhysicsLayers::WaterDrop)
                             .with_masks([PhysicsLayers::Terrain, PhysicsLayers::Lava]),
                     );
-                audio
-                    .play(audio_assets.pew.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.pew.clone());
             }
         }
     }
@@ -235,9 +228,8 @@ pub fn fire_projectile_collision(
     flamables: Query<Entity, With<Flamable>>,
     mut goblins: Query<(&mut AnimationState, &mut Velocity, &mut Patrol)>,
     mut collisions: EventReader<CollisionEvent>,
-    audio: Res<Audio>,
+    sound_channel: Res<AudioChannel<SoundChannel>>,
     audio_assets: Res<AudioAssets>,
-    volume_settings: Res<VolumeSettings>,
 ) {
     for event in collisions.iter().filter(|e| e.is_started()) {
         let (e1, e2) = event.rigid_body_entities();
@@ -245,9 +237,7 @@ pub fn fire_projectile_collision(
             // entity 1 is projectile
             if let Ok((mut state, mut velocity, mut patrol)) = goblins.get_mut(e2) {
                 commands.entity(e1).despawn_recursive();
-                audio
-                    .play(audio_assets.hurt.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.hurt.clone());
                 // play goblin death animation
                 *state = AnimationState::Death;
                 patrol.movement_speed = 0.0;
@@ -261,17 +251,13 @@ pub fn fire_projectile_collision(
                 // despawn
                 commands.entity(e2).despawn_recursive();
                 commands.entity(e1).despawn_recursive();
-                audio
-                    .play(audio_assets.hurt.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.hurt.clone());
             }
         } else if fireballs.contains(e2) {
             // entity 2 is projectile
             if let Ok((mut state, mut velocity, mut patrol)) = goblins.get_mut(e1) {
                 commands.entity(e2).despawn_recursive();
-                audio
-                    .play(audio_assets.hurt.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.hurt.clone());
                 // play goblin death animation
                 *state = AnimationState::Death;
                 patrol.movement_speed = 0.0;
@@ -285,9 +271,7 @@ pub fn fire_projectile_collision(
                 // despawn
                 commands.entity(e2).despawn_recursive();
                 commands.entity(e1).despawn_recursive();
-                audio
-                    .play(audio_assets.hurt.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.hurt.clone());
             }
         }
     }
@@ -329,9 +313,8 @@ pub fn water_projectile_collision(
         (With<Lava>, Without<WaterProjectile>),
     >,
     mut collisions: EventReader<CollisionEvent>,
-    audio: Res<Audio>,
+    sound_channel: Res<AudioChannel<SoundChannel>>,
     audio_assets: Res<AudioAssets>,
-    volume_settings: Res<VolumeSettings>,
 ) {
     for event in collisions.iter().filter(|e| e.is_started()) {
         let (e1, e2) = event.rigid_body_entities();
@@ -349,9 +332,7 @@ pub fn water_projectile_collision(
                 if !layers.contains_group(PhysicsLayers::Terrain) {
                     *layers = layers.with_group(PhysicsLayers::Terrain);
                 }
-                audio
-                    .play(audio_assets.steam.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.steam.clone());
             }
         } else if projectiles.contains(e2) {
             // entity 2 is projectile
@@ -367,9 +348,7 @@ pub fn water_projectile_collision(
                 if !layers.contains_group(PhysicsLayers::Terrain) {
                     *layers = layers.with_group(PhysicsLayers::Terrain);
                 }
-                audio
-                    .play(audio_assets.steam.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.steam.clone());
             }
         }
     }

@@ -1,6 +1,6 @@
 use bevy::asset::{AssetServer, HandleUntyped};
 use bevy::ecs::world::{Mut, World};
-use bevy::prelude::Handle;
+use bevy::prelude::{Component, Handle};
 use bevy_asset_loader::prelude::AssetCollection;
 use bevy_kira_audio::AudioSource;
 
@@ -63,3 +63,8 @@ impl VolumeSettings {
         }
     }
 }
+
+#[derive(Component, Default, Clone)]
+pub struct MusicChannel;
+#[derive(Component, Default, Clone)]
+pub struct SoundChannel;

@@ -9,7 +9,7 @@ use bevy::{
     time::{Time, Timer},
 };
 
-use bevy_kira_audio::{Audio, AudioControl};
+use bevy_kira_audio::{Audio, AudioChannel, AudioControl};
 use heron::{
     CollisionEvent, CollisionLayers, CollisionShape, PhysicMaterial, PhysicsLayer, RigidBody,
     RotationConstraints, Velocity,
@@ -18,7 +18,7 @@ use heron::{
 use crate::{
     abilities::{Element, Equipment},
     animation::Animated,
-    audio::{AudioAssets, VolumeSettings},
+    audio::{AudioAssets, SoundChannel, VolumeSettings},
     debug::DebugSettings,
     destruction::DestructionTimer,
     entity::player::{AnimationState, Player},
@@ -104,9 +104,8 @@ pub fn handle_controllables(
     game_assets: Res<GameAssets>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     debug_settings: Res<DebugSettings>,
-    audio: Res<Audio>,
+    sound_channel: Res<AudioChannel<SoundChannel>>,
     audio_assets: Res<AudioAssets>,
-    volume_settings: Res<VolumeSettings>,
 ) {
     for (
         mut velocity,
@@ -150,14 +149,10 @@ pub fn handle_controllables(
                             })
                             .insert(Animated::new(0.05, 0, 10, true))
                             .insert(DestructionTimer(Timer::from_seconds(0.5, false)));
-                        audio
-                            .play(audio_assets.explosion.clone())
-                            .with_volume(volume_settings.sfx_vol);
+                        sound_channel.play(audio_assets.explosion.clone());
                     } else {
                         velocity.linear.y = jump_velocity;
-                        audio
-                            .play(audio_assets.jump.clone())
-                            .with_volume(volume_settings.sfx_vol);
+                        sound_channel.play(audio_assets.jump.clone());
                     }
                     // run out the timer
                     detector.coyote_timer.tick(Duration::from_secs(10.0 as u64));
@@ -184,9 +179,7 @@ pub fn handle_controllables(
                         })
                         .insert(Animated::new(0.1, 0, 3, true))
                         .insert(DestructionTimer(Timer::from_seconds(0.3, false)));
-                    audio
-                        .play(audio_assets.air.clone())
-                        .with_volume(volume_settings.sfx_vol);
+                    sound_channel.play(audio_assets.air.clone());
                 }
 
                 let acceleration = if detector.is_grounded {

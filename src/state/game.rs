@@ -1,11 +1,11 @@
 use bevy::prelude::{Commands, ParallelSystemDescriptorCoercion, Plugin, Res, SystemSet};
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
 use bevy_ecs_ldtk::LdtkWorldBundle;
-use bevy_kira_audio::{Audio, AudioControl};
+use bevy_kira_audio::{AudioChannel, AudioControl};
 
 use crate::{
     abilities, animation,
-    audio::{AudioAssets, VolumeSettings},
+    audio::{AudioAssets, MusicChannel},
     camera, damage, destruction, entity, input, physics,
 };
 
@@ -76,16 +76,12 @@ impl Plugin for GamePlugin {
 fn setup(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
-    audio: Res<Audio>,
+    music_channel: Res<AudioChannel<MusicChannel>>,
     audio_assets: Res<AudioAssets>,
-    volume_settings: Res<VolumeSettings>,
 ) {
     commands.spawn_bundle(LdtkWorldBundle {
         ldtk_handle: game_assets.level.clone(),
         ..Default::default()
     });
-    audio
-        .play(audio_assets.bgm.clone())
-        .with_volume(0.5 * volume_settings.music_vol)
-        .looped();
+    music_channel.play(audio_assets.bgm.clone()).looped();
 }

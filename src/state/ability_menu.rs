@@ -9,12 +9,12 @@ use bevy::{
         AlignItems, FlexDirection, Interaction, JustifyContent, Size, Style, UiColor, UiRect, Val,
     },
 };
-use bevy_kira_audio::{Audio, AudioControl};
+use bevy_kira_audio::{Audio, AudioChannel, AudioControl};
 use heron::PhysicsTime;
 
 use crate::{
     abilities::{Element, Equipment},
-    audio::{AudioAssets, VolumeSettings},
+    audio::{AudioAssets, SoundChannel, VolumeSettings},
     debug::DebugSettings,
     entity::player::Player,
     input::Controllable,
@@ -464,25 +464,20 @@ fn button_interaction_system(
     >,
     mut player_query: Query<&mut Player>,
     mut state: ResMut<AbilityMenuState>,
-    audio: Res<Audio>,
+    sound_channel: Res<AudioChannel<SoundChannel>>,
     audio_assets: Res<AudioAssets>,
-    volume_settings: Res<VolumeSettings>,
 ) {
     for (interaction, element, grid_pos) in &element_button_query {
         match *interaction {
             Interaction::Clicked => {
-                audio
-                    .play(audio_assets.blip2.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.blip2.clone());
                 for mut player in player_query.iter_mut() {
                     player.combination.1 = Some(*element);
                 }
             }
             Interaction::Hovered => {
                 state.selected_pos = *grid_pos;
-                audio
-                    .play(audio_assets.blip1.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.blip1.clone());
             }
             _ => {}
         }
@@ -490,18 +485,14 @@ fn button_interaction_system(
     for (interaction, equipment, grid_pos) in &equipment_button_query {
         match *interaction {
             Interaction::Clicked => {
-                audio
-                    .play(audio_assets.blip2.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.blip2.clone());
                 for mut player in player_query.iter_mut() {
                     player.combination.0 = Some(*equipment);
                 }
             }
             Interaction::Hovered => {
                 state.selected_pos = *grid_pos;
-                audio
-                    .play(audio_assets.blip1.clone())
-                    .with_volume(volume_settings.sfx_vol);
+                sound_channel.play(audio_assets.blip1.clone());
             }
             _ => {}
         }
@@ -556,17 +547,14 @@ fn button_keyboard_select(
     mut state: ResMut<AbilityMenuState>,
     mut player_query: Query<&mut Player>,
     keyboard_input: Res<Input<KeyCode>>,
-    audio: Res<Audio>,
+    sound_channel: Res<AudioChannel<SoundChannel>>,
     audio_assets: Res<AudioAssets>,
-    volume_settings: Res<VolumeSettings>,
 ) {
     let mut player = player_query
         .get_single_mut()
         .expect("There should only be one player");
     if keyboard_input.just_pressed(KeyCode::Down) {
-        audio
-            .play(audio_assets.blip1.clone())
-            .with_volume(volume_settings.sfx_vol);
+        sound_channel.play(audio_assets.blip1.clone());
         state.selected_pos.row += 1;
         if state.selected_pos.col == 0 {
             if state.selected_pos.row >= player.num_equipment() {
@@ -577,9 +565,7 @@ fn button_keyboard_select(
         }
     }
     if keyboard_input.just_pressed(KeyCode::Up) {
-        audio
-            .play(audio_assets.blip1.clone())
-            .with_volume(volume_settings.sfx_vol);
+        sound_channel.play(audio_assets.blip1.clone());
         if state.selected_pos.col == 0 {
             if state.selected_pos.row == 0 {
                 state.selected_pos.row = player.num_equipment() - 1;
@@ -595,9 +581,7 @@ fn button_keyboard_select(
     if (keyboard_input.just_pressed(KeyCode::Left) || keyboard_input.just_pressed(KeyCode::Right))
         && player.num_elements() != 0
     {
-        audio
-            .play(audio_assets.blip1.clone())
-            .with_volume(volume_settings.sfx_vol);
+        sound_channel.play(audio_assets.blip1.clone());
         if state.selected_pos.col == 0 {
             state.selected_pos.col = 1;
         } else {
@@ -605,9 +589,7 @@ fn button_keyboard_select(
         }
     }
     if keyboard_input.just_pressed(KeyCode::Z) {
-        audio
-            .play(audio_assets.blip2.clone())
-            .with_volume(volume_settings.sfx_vol);
+        sound_channel.play(audio_assets.blip2.clone());
         for (element, grid_pos) in element_button_query.iter() {
             if *grid_pos == state.selected_pos {
                 player.combination.1 = Some(*element);

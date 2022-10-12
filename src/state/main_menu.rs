@@ -10,9 +10,9 @@ use bevy::{
     },
 };
 use bevy_asset_loader::prelude::{LoadingState, LoadingStateAppExt};
-use bevy_kira_audio::{Audio, AudioControl};
+use bevy_kira_audio::{AudioChannel, AudioControl};
 
-use crate::audio::{AudioAssets, VolumeSettings};
+use crate::audio::{AudioAssets, MusicChannel, SoundChannel, VolumeSettings};
 
 use super::{load_menu::MenuAssets, State};
 
@@ -45,16 +45,12 @@ enum MenuButton {
 fn setup(
     mut commands: Commands,
     menu_assets: Res<MenuAssets>,
-    // audio: Res<Audio>,
-    // audio_assets: Res<AudioAssets>,
+    music_channel: Res<AudioChannel<MusicChannel>>,
+    audio_assets: Res<AudioAssets>,
 ) {
     commands.insert_resource(VolumeSettings::default());
 
-    // TODO: update volume with audio channels
-    // audio
-    // .play(audio_assets.menu.clone())
-    // .with_volume(0.5)
-    // .looped();
+    music_channel.play(audio_assets.menu.clone()).looped();
 
     commands.spawn_bundle(Camera2dBundle {
         transform: Transform::from_xyz(0.0, 0.0, 900.0),
@@ -197,7 +193,8 @@ fn button_system(
     >,
     mut state: ResMut<bevy::prelude::State<State>>,
     mut volume_settings: ResMut<VolumeSettings>,
-    audio: Res<Audio>,
+    music_channel: Res<AudioChannel<MusicChannel>>,
+    sound_channel: Res<AudioChannel<SoundChannel>>,
     audio_assets: Res<AudioAssets>,
 ) {
     for (button, interaction, mut color) in &mut interaction_query {
@@ -210,15 +207,13 @@ fn button_system(
                     }
                     MenuButton::Sound => {
                         volume_settings.toggle_sfx_vol();
-                        audio
-                            .play(audio_assets.blip1.clone())
-                            .with_volume(volume_settings.sfx_vol);
+                        sound_channel.set_volume(volume_settings.sfx_vol);
+                        sound_channel.play(audio_assets.blip1.clone());
                     }
                     MenuButton::Music => {
                         volume_settings.toggle_music_vol();
-                        audio
-                            .play(audio_assets.blip1.clone())
-                            .with_volume(volume_settings.music_vol);
+                        music_channel.set_volume(volume_settings.music_vol);
+                        sound_channel.play(audio_assets.blip1.clone());
                     }
                 }
             }
@@ -232,8 +227,13 @@ fn button_system(
     }
 }
 
-fn cleanup(mut commands: Commands, query: Query<Entity, With<MainMenu>>) {
+fn cleanup(
+    mut commands: Commands,
+    query: Query<Entity, With<MainMenu>>,
+    music_channel: Res<AudioChannel<MusicChannel>>,
+) {
     for entity in query.iter() {
         commands.entity(entity).despawn_recursive();
     }
+    music_channel.stop();
 }

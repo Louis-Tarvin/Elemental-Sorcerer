@@ -1,4 +1,5 @@
 #![allow(clippy::type_complexity, clippy::too_many_arguments)]
+use audio::{MusicChannel, SoundChannel};
 use bevy::{
     prelude::{App, ClearColor, Color},
     render::texture::ImageSettings,
@@ -7,7 +8,7 @@ use bevy::{
 };
 
 use bevy_ecs_ldtk::LdtkPlugin;
-use bevy_kira_audio::AudioPlugin;
+use bevy_kira_audio::{AudioApp, AudioPlugin};
 use debug::DebugPlugin;
 
 use heron::PhysicsPlugin;
@@ -44,6 +45,8 @@ fn main() {
         .add_plugin(LdtkPlugin)
         .add_plugin(PhysicsPlugin::default())
         .add_plugin(AudioPlugin)
+        .add_audio_channel::<MusicChannel>()
+        .add_audio_channel::<SoundChannel>()
         .insert_resource(ClearColor(Color::rgb(0.133, 0.122, 0.192)))
         .insert_resource(WindowDescriptor {
             width: 1280.,

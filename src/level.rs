@@ -35,7 +35,7 @@ pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(LevelSelection::Index(6))
+        app.insert_resource(LevelSelection::Index(1))
             .insert_resource(LdtkSettings {
                 level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
                     load_level_neighbors: true,
