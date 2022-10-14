@@ -9,7 +9,7 @@ use bevy::{
     time::{Time, Timer},
 };
 
-use bevy_kira_audio::{Audio, AudioChannel, AudioControl};
+use bevy_kira_audio::{AudioChannel, AudioControl};
 use heron::{
     CollisionEvent, CollisionLayers, CollisionShape, PhysicMaterial, PhysicsLayer, RigidBody,
     RotationConstraints, Velocity,
@@ -18,7 +18,7 @@ use heron::{
 use crate::{
     abilities::{Element, Equipment},
     animation::Animated,
-    audio::{AudioAssets, SoundChannel, VolumeSettings},
+    audio::{AudioAssets, SoundChannel},
     debug::DebugSettings,
     destruction::DestructionTimer,
     entity::player::{AnimationState, Player},
@@ -88,6 +88,7 @@ pub struct Dynamic {
     pub direction: Direction,
 }
 
+/// This system handles the movement of controllable entities
 pub fn handle_controllables(
     time: Res<Time>,
     mut commands: Commands,

@@ -12,12 +12,12 @@ use bevy_ecs_ldtk::{
     EntityInstance,
 };
 use bevy_inspector_egui::Inspectable;
-use bevy_kira_audio::{Audio, AudioChannel, AudioControl};
+use bevy_kira_audio::{AudioChannel, AudioControl};
 use heron::CollisionEvent;
 
 use crate::{
     animation::Animated,
-    audio::{AudioAssets, SoundChannel, VolumeSettings},
+    audio::{AudioAssets, SoundChannel},
     physics::PhysicsObjectBundle,
 };
 

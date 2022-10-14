@@ -9,7 +9,7 @@ use crate::{
     camera, damage, destruction, entity, input, physics,
 };
 
-use super::{load_game::GameAssets, State};
+use super::{load_game::{GameAssets, self}, State};
 
 pub struct GamePlugin;
 
@@ -20,6 +20,8 @@ impl Plugin for GamePlugin {
                 .continue_to_state(State::InGame)
                 .with_collection::<GameAssets>(),
         )
+        .add_system_set(SystemSet::on_enter(State::LoadGame).with_system(load_game::setup))
+        .add_system_set(SystemSet::on_exit(State::LoadGame).with_system(load_game::cleanup))
         .add_system_set(SystemSet::on_enter(State::InGame).with_system(setup))
         .add_system_set(
             SystemSet::on_update(State::InGame)

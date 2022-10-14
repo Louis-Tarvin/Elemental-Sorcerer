@@ -9,12 +9,12 @@ use bevy::{
         AlignItems, FlexDirection, Interaction, JustifyContent, Size, Style, UiColor, UiRect, Val,
     },
 };
-use bevy_kira_audio::{Audio, AudioChannel, AudioControl};
+use bevy_kira_audio::{AudioChannel, AudioControl};
 use heron::PhysicsTime;
 
 use crate::{
     abilities::{Element, Equipment},
-    audio::{AudioAssets, SoundChannel, VolumeSettings},
+    audio::{AudioAssets, SoundChannel},
     debug::DebugSettings,
     entity::player::Player,
     input::Controllable,
